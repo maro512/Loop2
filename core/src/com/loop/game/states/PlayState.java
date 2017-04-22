@@ -108,13 +108,6 @@ public class PlayState extends State {
     public void dispose() {
         boardBackground.dispose();
         crrPlayer.dispose();
-        for (Tile t : cells) {
-            t.dispose();
-        }
-
-        for (Tile t : menu.values()) {
-            t.dispose();
-        }
     }
 
     public void addCell(int x, int y, byte type) {

@@ -45,7 +45,4 @@ public class Tile {
         return tile;
     }
 
-    public void dispose(){
-        tile.dispose();
-    }
 }
