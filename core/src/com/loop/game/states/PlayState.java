@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.loop.game.LoopGame;
 import com.loop.game.Tile;
+import com.loop.game.TileType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,6 +48,7 @@ public class PlayState extends State {
 
     public PlayState(GameStateManager gsm) {
         super(gsm);
+        TileType.load();
         menu = new HashMap<Byte, Tile>();
         addMenuTiles();
         cells = new Array<Tile>();
@@ -56,6 +58,7 @@ public class PlayState extends State {
         crrPlayer = new Texture("crrPlayer.png");
         firstPlayer = true;
         cam.setToOrtho(false, LoopGame.WIDTH, LoopGame.HEIGHT);
+
 
 
 //        manager.load("tile_10.png", Texture.class);

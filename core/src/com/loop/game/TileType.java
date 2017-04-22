@@ -11,8 +11,11 @@ import java.util.Map;
 
 public class TileType {
     private Map<Integer, Texture> tiles;
-    public static TileType instace = new TileType();
+    public static TileType instance;
 
+    public static void load(){
+        instance = new TileType();
+    }
     private TileType() {
         tiles = new HashMap<Integer, Texture>();
         tiles.put(10, new Texture("tile_10.png"));

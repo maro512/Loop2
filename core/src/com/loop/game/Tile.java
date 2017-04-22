@@ -13,7 +13,7 @@ public class Tile {
 
     public Tile(int x, int y, int type) {
         position = new Vector3(x,y,0);
-        tile = TileType.instace.getTile(type);
+        tile = TileType.instance.getTile(type);
 
     }
 
