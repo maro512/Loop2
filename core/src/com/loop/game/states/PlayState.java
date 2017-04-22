@@ -2,6 +2,7 @@ package com.loop.game.states;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector3;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Created by marek on 15.04.17.
@@ -22,6 +24,7 @@ public class PlayState extends State {
     private Texture boardBackground;
     private Texture crrPlayer;
     private boolean firstPlayer;
+    //public AssetManager manager = new AssetManager();
 
     private Map<Byte, Tile> menu;
     private Array<Tile> cells;
@@ -54,6 +57,13 @@ public class PlayState extends State {
         firstPlayer = true;
         cam.setToOrtho(false, LoopGame.WIDTH, LoopGame.HEIGHT);
 
+
+//        manager.load("tile_10.png", Texture.class);
+//        manager.load("tile_5.png", Texture.class);
+//        manager.load("tile_9.png", Texture.class);
+//        manager.load("tile_3.png", Texture.class);
+//        manager.load("tile_6.png", Texture.class);
+//        manager.load("tile_12.png", Texture.class);
     }
 
     @Override
@@ -120,7 +130,34 @@ public class PlayState extends State {
         int x = (int) (position.x - BOARD_MARGIN) / cellSize;
         int y = (int) (position.y - BOTTOM_MARGIN) / cellSize;
         //game.getposiblemoves?
-        addCell(x, y, (byte) 6);
+
+        //do testow
+        Random rand = new Random();
+        int r = rand.nextInt(6);
+        byte b = 3;
+
+        switch (r){
+            case 0:
+                b = 10;
+                break;
+            case 1:
+                b = 5;
+                break;
+            case 2:
+                b = 9;
+                break;
+            case 3:
+                b = 3;
+                break;
+            case 4:
+                b = 6;
+                break;
+            case 5:
+                b = 12;
+                break;
+        }
+
+        addCell(x, y, b);
     }
 
     private void sendType(Vector3 position) {
