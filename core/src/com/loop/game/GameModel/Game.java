@@ -6,6 +6,7 @@ import java.util.Random;
 
 /**
  * Created by marek on 11.04.17.
+ * Edited by ciepiela on 22.04.17.
  */
 
 public class Game {
@@ -15,10 +16,12 @@ public class Game {
     private Player[] players;
     private int currentPlayer; // liczba z {0, 1}, do wyboru z tablicy players
 
-    public Game(Board board) {
-        this.board = board;
+    public Game() {
+        this.board = new Board();
         this.players = new Player[2];
     }
+
+    private void changePlayer() { currentPlayer ^= 1; }
 
     public Player pickFirstPlayer() {
         Random rnd = new Random();
@@ -27,49 +30,46 @@ public class Game {
     }
 
     /**
-     * Metoda zwraca moÅ¼liwe typy pÅ‚ytek, ktÃ³re mogÄ… zostaÄ‡ poÅ‚oÅ¼one
+     * Metoda zwraca mo¿liwe typy p³ytek, które mog¹ zostaæ po³o¿one
      * na danym polu.
-     * @param x, @param y - wspÃ³Å‚rzÄ™dne
-     * @return lista typÃ³w jako lista obiektÃ³w Byte,
-     *         null, gdy nie da siÄ™ postawiÄ‡ pÅ‚ytki
+     * @param x, @param y - wspó³rzêdne
+     * @return lista typów jako lista obiektów Byte,
+     *         pusta lista, gdy nie da siê postawiæ p³ytki
      */
     public List<Byte> getPossibleMoves(int x, int y) {
-      List<Byte> possibilities = new LinkedList<Byte>();
-      EmptyCell cell = board.getAvailablePlace(x, y);
+      if (!board.isWhiteWin() && !board.isBlackWin()) {
+        List<Byte> possibilities = new LinkedList<Byte>();
+        EmptyCell cell = board.getAvailablePlace(x, y);
 
-      if (cell != null && !cell.isDead()) {
-        for (int i=0; i<Tile.ALL_TYPES.length; ++i) {
-          if (cell.tileFits(Tile.ALL_TYPES[i])) {
-            //add(Tile.ALL_TYPES[i]);
+        if (cell != null) {
+          for (int i=0; i<Tile.ALL_TYPES.length; ++i) {
+            if (cell.tileFits(Tile.ALL_TYPES[i])) {
+              possibilities.add(Tile.ALL_TYPES[i]);
+            }
           }
         }
-      } else {
-        return null;
       }
 
       return possibilities;
     }
 
     /**
-     * ZakÅ‚adam, Å¼e dostajÄ™ od interfejsu TYLKO pÅ‚ytki z prawidÅ‚owym typem
-     * i miejscem (getPossibleMoves zapobiega zÅ‚ym typom)
+     * Zak³adam, ¿e dostajê od interfejsu TYLKO p³ytki z prawid³owym typem
+     * i miejscem (getPossibleMoves zapobiega z³ym typom)
      */
     public void makeMove(int x, int y, byte type) {
       board.setTile(board.getAvailablePlace(x, y), type);
-    }
-
-    public Player changePlayer() {
-      ++currentPlayer;
-      currentPlayer %= 2;
-      return players[currentPlayer];
+      changePlayer();
     }
 
     /**
-     * Zwraca zwyciÄ™zcÄ™, jeÅ›li gra jest rozstrzygniÄ™ta;
-     * jeÅ¼eli nie jest, zwraca null.
+     * Zwraca zwyciêzcê, jeœli gra jest rozstrzygniêta;
+     * je¿eli nie jest, zwraca null.
      */
     public Player whoWon() {
-      if (board.isWhiteWin()) {
+      if (board.isWhiteWin() && board.isBlackWin()) {
+        return new Player("DRAW");
+      } else if (board.isWhiteWin()) {
         return players[WHITE];
       } else if (board.isBlackWin()) {
         return players[BLACK];
