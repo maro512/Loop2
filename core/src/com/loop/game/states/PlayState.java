@@ -135,6 +135,8 @@ public class PlayState extends State {
         //game.getposiblemoves?
 
         //do testow
+        firstPlayer = !firstPlayer;
+
         Random rand = new Random();
         int r = rand.nextInt(6);
         byte b = 3;
@@ -178,7 +180,7 @@ public class PlayState extends State {
             else if (x == 1) type = 3;
             else type = 12;
         }
-        //game.type
+        //game.type? - wyświetlanie tylko dla testow
         System.out.println(type);
     }
 

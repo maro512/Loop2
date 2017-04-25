@@ -32,7 +32,7 @@ public abstract class BasicPosition
     }
 
     /** To mała klasa pomocnicza, która ma na celu zmniejszać narzut z niepotrzebnym częstym tworzeniem
-     * obiektów Position. Klasa Position musi być niemodyfikowalna, bay zapobiec błędom związanym
+     * obiektów Position. Klasa Position musi być niemodyfikowalna, by zapobiec błędom związanym
      * z przypadkową modyfikacją współrzędnych obiektów klasy Tile i EmptyCell.
      */
     public static class Mutable extends BasicPosition
@@ -50,6 +50,17 @@ public abstract class BasicPosition
         @Override
         public int getY() { return y; }
     }
+
+    /**
+     * Metoda dekodująca - tworzy BasicPosition na podstawie wartości hashCode.
+     */
+    public static BasicPosition fromHashCode(int hash)
+    {
+        hash+= 65537/2;
+        int x= hash >0 ? hash/65537 : hash/65537-1;
+        int y= hash- x*65537- 65537/2; // poprawiona reszta z dzielenia
+        return new Mutable().set(x,y);
+    }
 }
 
 /**
@@ -61,17 +72,7 @@ class Position extends BasicPosition
     private int x,y;
 
     public Position(int xx, int yy) { x=xx; y=yy; }
-
-    /** Metoda dekodująca - tworzy Position na podstawie hashCode
-     * Powinna działać, ale trzeba przetestować
-     */
-    public static Position fromHashCode(int hash)
-    {
-        hash+= 65537/2;
-        int x= hash >0 ? hash/65537 : hash/65537-1;
-        int y= hash- x*65537- 65537/2; // poprawiona reszta z dzielenia
-        return new Position(x,y);
-    }
+    //public Position(BasicPosition bp) { x=bp.getX(); y=bp.getY(); }
 
     // Dostęp do współrzędnych
     public int getX() { return x; }

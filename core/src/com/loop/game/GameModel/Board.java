@@ -11,13 +11,14 @@ import java.util.Map;
  */
 public class Board
 {
-    private Map<BasicPosition, Cell> graph;
-    private boolean whiteWin, blackWin;
-    private int minX, minY, maxX, maxY;
+    private Map<BasicPosition, Cell> graph, view;
+    private boolean whiteWin, blackWin; // Informacja o istnieniu pętli
+    private int minX, minY, maxX, maxY; // Wymiary planszy
 
     public Board()
     {
         graph = new HashMap<BasicPosition, Cell>();
+        view = Collections.unmodifiableMap(graph);
         minimalWinningLength=8;
         Cell first = new EmptyCell( new Position(0,0) );
         graph.put(first.getPosition(),first );
@@ -45,9 +46,7 @@ public class Board
         return maxY;
     }
 
-    public Map<BasicPosition, Cell> getCrrPosition() {  // czy dobry typ?
-        return Collections.unmodifiableMap(graph);
-    }
+    public Map<BasicPosition, Cell> getCrrPosition() { return view; }
     /* //Wywaliłem, bo to sprzeczne z zasadą hermatyzacji danych.
     public void setCrrPosition(Map<Position, Cell> graph) {
         this.graph = graph;
@@ -62,11 +61,13 @@ public class Board
         this.minimalWinningLength = minimalWinningLength;
     }
 
+    /** Zwraca, czy istnieje biała linia wygrywająca. */
     public boolean isWhiteWin()
     {
         return whiteWin;
     }
 
+    /** Zwraca, czy istnieje czarna linia wygrywająca. */
     public boolean isBlackWin()
     {
         return blackWin;
