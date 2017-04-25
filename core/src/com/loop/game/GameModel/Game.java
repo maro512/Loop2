@@ -6,7 +6,7 @@ import java.util.Random;
 
 /**
  * Created by marek on 11.04.17.
- * Edited by ciepiela on 22.04.17.
+ * Edited by ciepiela on 25.04.17.
  */
 
 public class Game {
@@ -15,67 +15,75 @@ public class Game {
     private final int WHITE = 0;
     private Player[] players;
     private int currentPlayer; // liczba z {0, 1}, do wyboru z tablicy players
+    private Random rnd;
+    private boolean draw;
 
     public Game() {
         this.board = new Board();
         this.players = new Player[2];
+        this.rnd = new Random();
+        this.draw = false;
     }
 
     private void changePlayer() { currentPlayer ^= 1; }
 
     public Player pickFirstPlayer() {
-        Random rnd = new Random();
         currentPlayer = rnd.nextInt(2);
         return players[currentPlayer];
     }
 
+    public boolean isDraw() { return draw; }
+
     /**
-     * Metoda zwraca mo¿liwe typy p³ytek, które mog¹ zostaæ po³o¿one
+     * Metoda zwraca mozliwe typy plytek, które moga zostac polozone
      * na danym polu.
-     * @param x, @param y - wspó³rzêdne
-     * @return lista typów jako lista obiektów Byte,
-     *         pusta lista, gdy nie da siê postawiæ p³ytki
+     * @param x - wspolrzedna x
+     * @param y - wspolrzedna y
+     * @return  - lista typow jako lista obiektow Byte,
+     *            pusta lista, gdy nie da sie postawic plytki
      */
     public List<Byte> getPossibleMoves(int x, int y) {
-      if (!board.isWhiteWin() && !board.isBlackWin()) {
         List<Byte> possibilities = new LinkedList<Byte>();
-        EmptyCell cell = board.getAvailablePlace(x, y);
+        if (!draw && !board.isWhiteWin() && !board.isBlackWin()) {
+            EmptyCell cell = board.getAvailablePlace(x, y);
 
-        if (cell != null) {
-          for (int i=0; i<Tile.ALL_TYPES.length; ++i) {
-            if (cell.tileFits(Tile.ALL_TYPES[i])) {
-              possibilities.add(Tile.ALL_TYPES[i]);
+            if (cell != null) {
+                for (int i=0; i<Tile.ALL_TYPES.length; ++i) {
+                    if (cell.tileFits(Tile.ALL_TYPES[i])) {
+                        possibilities.add(Tile.ALL_TYPES[i]);
+                    }
+                }
             }
-          }
         }
-      }
 
-      return possibilities;
+        return possibilities;
     }
 
     /**
-     * Zak³adam, ¿e dostajê od interfejsu TYLKO p³ytki z prawid³owym typem
-     * i miejscem (getPossibleMoves zapobiega z³ym typom)
+     * Zakladam, ze dostaje od interfejsu TYLKO plytki z prawidlowym typem
+     * i miejscem (getPossibleMoves zapobiega zlym typom)
      */
     public void makeMove(int x, int y, byte type) {
-      board.setTile(board.getAvailablePlace(x, y), type);
-      changePlayer();
+        board.setTile(board.getAvailablePlace(x, y), type);
+        changePlayer();
     }
 
     /**
-     * Zwraca zwyciêzcê, jeœli gra jest rozstrzygniêta;
-     * je¿eli nie jest, zwraca null.
+     * Zwraca zwyciezce, jesli gra jest rozstrzygnieta;
+     * jesli jest remis, ustawia zmienna draw na true i zwraca null
+     * jesli gra nie jest rozstrzygnieta, zwraca null.
      */
     public Player whoWon() {
-      if (board.isWhiteWin() && board.isBlackWin()) {
-        return new Player("DRAW");
-      } else if (board.isWhiteWin()) {
-        return players[WHITE];
-      } else if (board.isBlackWin()) {
-        return players[BLACK];
-      } else {
-        return null;
-      }
+        if (board.isWhiteWin() && board.isBlackWin()) {
+            draw = true;
+            return null;
+        } else if (board.isWhiteWin()) {
+            return players[WHITE];
+        } else if (board.isBlackWin()) {
+            return players[BLACK];
+        } else {
+            return null;
+        }
     }
 
     public Player getCrrPlayer() { return players[currentPlayer]; }
