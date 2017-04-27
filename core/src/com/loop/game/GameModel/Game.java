@@ -1,5 +1,6 @@
 package com.loop.game.GameModel;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -35,7 +36,7 @@ public class Game {
     public boolean isDraw() { return draw; }
 
     /**
-     * Metoda zwraca mozliwe typy plytek, które moga zostac polozone
+     * Metoda zwraca mozliwe typy plytek, ktï¿½re moga zostac polozone
      * na danym polu.
      * @param x - wspolrzedna x
      * @param y - wspolrzedna y
@@ -84,6 +85,10 @@ public class Game {
         } else {
             return null;
         }
+    }
+
+    public Collection<Cell> getBoardView(){
+        return board.getCrrPosition().values();
     }
 
     public Player getCrrPlayer() { return players[currentPlayer]; }

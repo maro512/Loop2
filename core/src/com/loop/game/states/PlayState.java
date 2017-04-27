@@ -2,20 +2,19 @@ package com.loop.game.states;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
+import com.loop.game.GameModel.BasicPosition;
+import com.loop.game.GameModel.Cell;
+import com.loop.game.GameModel.Game;
+import com.loop.game.GameModel.Tile;
 import com.loop.game.LoopGame;
-import com.loop.game.Tile;
-import com.loop.game.TileType;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Created by marek on 15.04.17.
@@ -25,11 +24,14 @@ public class PlayState extends State {
     private Texture boardBackground;
     private Texture crrPlayer;
     private boolean firstPlayer;
-    //public AssetManager manager = new AssetManager();
+    private Vector3 delta;
 
-    private Map<Byte, Tile> menu;
-    private Array<Tile> cells;
-    private List<Byte> menuTiles;
+    private Map<Byte, Texture> tileTextures;
+    private Collection<Cell> cells;
+
+    private Game game;
+    private int chosenX, chosenY;
+    private byte menuStructure[][];
 
     private static final int NO_COLUMNS = 10;
     private static final int NO_ROW = 11;
@@ -48,46 +50,51 @@ public class PlayState extends State {
 
     public PlayState(GameStateManager gsm) {
         super(gsm);
-        TileType.load();
-        menu = new HashMap<Byte, Tile>();
-        addMenuTiles();
-        cells = new Array<Tile>();
-        menuTiles = new ArrayList<Byte>();
-        resetTilesMenu();
+
+        buildMenuStructure();
+
         boardBackground = new Texture("board.png");
         crrPlayer = new Texture("crrPlayer.png");
         firstPlayer = true;
         cam.setToOrtho(false, LoopGame.WIDTH, LoopGame.HEIGHT);
 
+        game = new Game();
 
+        cells = game.getBoardView();
 
-//        manager.load("tile_10.png", Texture.class);
-//        manager.load("tile_5.png", Texture.class);
-//        manager.load("tile_9.png", Texture.class);
-//        manager.load("tile_3.png", Texture.class);
-//        manager.load("tile_6.png", Texture.class);
-//        manager.load("tile_12.png", Texture.class);
+        delta = new Vector3();
+        tileTextures = new HashMap<Byte, Texture>();
+        addTileTextures();
+
     }
 
     @Override
     public void handleInput() {
         Gdx.input.setInputProcessor(new InputAdapter() {
-
+            int prevX, prevY;
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 Vector3 position = new Vector3();
                 cam.unproject(position.set(screenX, screenY, 0));
 
                 if (isOnBoard(position)) {
-                    sendBoardPosition(position);
+                    setChosenPosition(position);
                 } else if (isOnMenu(position)) {
-                    sendType(position);
+                    choseType(position);
                 }
-
+                prevX = screenX;
+                prevY = screenY;
 
                 return true;
             }
 
+            @Override
+            public boolean touchDragged(int screenX, int screenY, int pointer) {
+//                delta.x = (screenX - prevX)/10;
+//                delta.y = (-screenY + prevY)/10;
+
+                return true;
+            }
         });
 
     }
@@ -95,6 +102,7 @@ public class PlayState extends State {
     @Override
     public void update(float dt) {
         handleInput();
+        cells = game.getBoardView();
     }
 
     @Override
@@ -105,13 +113,10 @@ public class PlayState extends State {
         sb.draw(crrPlayer, firstPlayer ? 0 : LoopGame.WIDTH / 2, BOTTOM_MARGIN + boardHeight,
                 LoopGame.WIDTH / 2, LoopGame.HEIGHT - BOTTOM_MARGIN - boardHeight);
 
-        for (Tile t : cells) {
-            sb.draw(t.getTexture(), t.getPosition().x, t.getPosition().y, cellSize, cellSize);
-        }
+        renderMenu(sb);
 
-        for (Byte b : menuTiles) {
-            Tile t = menu.get(b);
-            sb.draw(t.getTexture(), t.getPosition().x, t.getPosition().y, MENU_CELL_SIZE, MENU_CELL_SIZE);
+        for (Cell c : cells){
+            renderCell(sb, c);
         }
 
         sb.end();
@@ -121,110 +126,41 @@ public class PlayState extends State {
     public void dispose() {
         boardBackground.dispose();
         crrPlayer.dispose();
+        Collection<Texture> textures = tileTextures.values();
+        for (Texture t : textures){
+            t.dispose();
+        }
     }
 
-    public void addCell(int x, int y, byte type) {
-        int boardX = x * cellSize + BOARD_MARGIN;
-        int boardY = y * cellSize + BOTTOM_MARGIN;
-        cells.add(new Tile(boardX, boardY, (int) type));
-    }
-
-    private void sendBoardPosition(Vector3 position) {
+    private void setChosenPosition(Vector3 position) {
         int x = (int) (position.x - BOARD_MARGIN) / cellSize;
         int y = (int) (position.y - BOTTOM_MARGIN) / cellSize;
-        //game.getposiblemoves?
 
-        //do testow
-        firstPlayer = !firstPlayer;
-
-        Random rand = new Random();
-        int r = rand.nextInt(6);
-        byte b = 3;
-
-        switch (r){
-            case 0:
-                b = 10;
-                break;
-            case 1:
-                b = 5;
-                break;
-            case 2:
-                b = 9;
-                break;
-            case 3:
-                b = 3;
-                break;
-            case 4:
-                b = 6;
-                break;
-            case 5:
-                b = 12;
-                break;
-        }
-
-        addCell(x, y, b);
+        chosenX = x;
+        chosenY = y;
     }
 
-    private void sendType(Vector3 position) {
+    private void choseType(Vector3 position) {
         int x = (int) (position.x - MENU_LEFT_MARGIN) * 3 / (3 * MENU_CELL_SIZE + 2 * MENU_MARGIN);
         int y = (int) (position.y - MENU_BOTTOM_MARGIN) * 2 / (2 * MENU_CELL_SIZE + MENU_MARGIN);
 
-        int type;
+        byte type = menuStructure[x][y];
 
-        if (y == 0) {
-            if (x == 0) type = 10;
-            else if (x == 1) type = 9;
-            else type = 6;
-        } else {
-            if (x == 0) type = 5;
-            else if (x == 1) type = 3;
-            else type = 12;
+        List<Byte> possibleMoves = game.getPossibleMoves(chosenX, chosenY);
+        if (possibleMoves.contains(type)){
+            game.makeMove(chosenX, chosenY, type);
+            firstPlayer = !firstPlayer;
         }
-        //game.type? - wyświetlanie tylko dla testow
-        System.out.println(type);
-    }
-
-    public void displayPossibleTiles(List<Byte> tiles) {
-        menuTiles.clear();
-        menuTiles.addAll(tiles);
-    }
-
-    public void displayCrrPlayer(int player) { //player 1 albo 2
-        firstPlayer = player == 1;
-    }
-
-    public void resetTilesMenu() {
-        menuTiles.clear();
-        menuTiles.add((byte) 10);
-        menuTiles.add((byte) 5);
-        menuTiles.add((byte) 9);
-        menuTiles.add((byte) 3);
-        menuTiles.add((byte) 6);
-        menuTiles.add((byte) 12);
 
     }
 
     private boolean isOnBoard(Vector3 position) {
-        return position.x > BOARD_MARGIN
+        return position.x >= BOARD_MARGIN
                 && position.x < LoopGame.WIDTH - BOARD_MARGIN
                 && position.y < BOTTOM_MARGIN + boardHeight
-                && position.y > BOTTOM_MARGIN;
+                && position.y >= BOTTOM_MARGIN;
     }
 
-    private void addMenuTiles() {
-        int column1 = MENU_LEFT_MARGIN;
-        int column2 = column1 + MENU_MARGIN + MENU_CELL_SIZE;
-        int column3 = column2 + MENU_MARGIN + MENU_CELL_SIZE;
-        int row1 = MENU_BOTTOM_MARGIN;
-        int row2 = row1 + MENU_MARGIN + MENU_CELL_SIZE;
-
-        menu.put((byte) 10, new Tile(column1, row1, 10));
-        menu.put((byte) 5, new Tile(column1, row2, 5));
-        menu.put((byte) 9, new Tile(column2, row1, 9));
-        menu.put((byte) 3, new Tile(column2, row2, 3));
-        menu.put((byte) 6, new Tile(column3, row1, 6));
-        menu.put((byte) 12, new Tile(column3, row2, 12));
-    }
 
     private boolean isOnMenu(Vector3 position) {
         return position.x > MENU_LEFT_MARGIN
@@ -232,4 +168,57 @@ public class PlayState extends State {
                 && position.y < MENU_BOTTOM_MARGIN + 2 * MENU_CELL_SIZE + MENU_MARGIN
                 && position.y > MENU_BOTTOM_MARGIN;
     }
+
+    private void addTileTextures(){
+        byte[] allTypes = Tile.ALL_TYPES;
+        for (Byte b : allTypes) {
+            String s = "tile_" + b + ".png";
+            tileTextures.put(b, new Texture(s));
+        }
+    }
+
+    private void renderMenu(SpriteBatch sb){
+        int column[] = {MENU_LEFT_MARGIN,
+                MENU_LEFT_MARGIN + MENU_MARGIN + MENU_CELL_SIZE,
+                MENU_LEFT_MARGIN + 2*(MENU_MARGIN + MENU_CELL_SIZE)};
+        int row[] = {MENU_BOTTOM_MARGIN,
+                MENU_BOTTOM_MARGIN + MENU_MARGIN + MENU_CELL_SIZE};
+
+        List<Byte> possibleMoves = game.getPossibleMoves(chosenX, chosenY);
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 2; j++) {
+                if (possibleMoves.contains(menuStructure[i][j])) {
+                    sb.draw(tileTextures.get(menuStructure[i][j]), column[i], row[j], MENU_CELL_SIZE, MENU_CELL_SIZE);
+                } else {
+                    sb.draw(crrPlayer, column[i], row[j], MENU_CELL_SIZE, MENU_CELL_SIZE);
+                }
+            }
+        }
+
+    }
+
+    private void renderCell(SpriteBatch sb, Cell cell){
+        BasicPosition bp = cell.getPosition();
+        Vector3 position = new Vector3();
+        position.set(bp.getX() * cellSize + BOARD_MARGIN, bp.getY() * cellSize + BOTTOM_MARGIN, 0);
+
+        if (cell.isTile()){
+            Texture texture = tileTextures.get(((Tile) cell).getType());
+            sb.draw(texture, position.x, position.y, cellSize, cellSize);
+        } else if (isOnBoard(position)){
+            sb.draw(crrPlayer, position.x, position.y, cellSize, cellSize);
+        }
+    }
+
+    private void buildMenuStructure(){
+        menuStructure = new byte[3][2];
+        menuStructure[0][0] = Tile.TYPE_NS;
+        menuStructure[0][1] = Tile.TYPE_WE;
+        menuStructure[1][0] = Tile.TYPE_SE;
+        menuStructure[1][1] = Tile.TYPE_NE;
+        menuStructure[2][0] = Tile.TYPE_NW;
+        menuStructure[2][1] = Tile.TYPE_SW;
+    }
+
 }
