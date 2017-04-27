@@ -63,6 +63,8 @@ public class PlayState extends State {
         cells = game.getBoardView();
 
         delta = new Vector3();
+        delta.add(5*cellSize, 5*cellSize,0);
+
         tileTextures = new HashMap<Byte, Texture>();
         addTileTextures();
 
@@ -136,8 +138,8 @@ public class PlayState extends State {
         int x = (int) (position.x - BOARD_MARGIN) / cellSize;
         int y = (int) (position.y - BOTTOM_MARGIN) / cellSize;
 
-        chosenX = x;
-        chosenY = -y;
+        chosenX = x - 5;
+        chosenY = -y + 5;
     }
 
     private void choseType(Vector3 position) {
@@ -201,7 +203,7 @@ public class PlayState extends State {
     private void renderCell(SpriteBatch sb, Cell cell){
         BasicPosition bp = cell.getPosition();
         Vector3 position = new Vector3();
-        position.set(bp.getX() * cellSize + BOARD_MARGIN, -bp.getY() * cellSize + BOTTOM_MARGIN, 0);
+        position.set(bp.getX() * cellSize + BOARD_MARGIN + delta.x, -bp.getY() * cellSize + BOTTOM_MARGIN + delta.y, 0);
 
         if (cell.isTile()){
             Texture texture = tileTextures.get(((Tile) cell).getType());
