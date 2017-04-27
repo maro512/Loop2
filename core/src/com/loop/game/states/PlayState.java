@@ -137,7 +137,7 @@ public class PlayState extends State {
         int y = (int) (position.y - BOTTOM_MARGIN) / cellSize;
 
         chosenX = x;
-        chosenY = y;
+        chosenY = -y;
     }
 
     private void choseType(Vector3 position) {
@@ -201,7 +201,7 @@ public class PlayState extends State {
     private void renderCell(SpriteBatch sb, Cell cell){
         BasicPosition bp = cell.getPosition();
         Vector3 position = new Vector3();
-        position.set(bp.getX() * cellSize + BOARD_MARGIN, bp.getY() * cellSize + BOTTOM_MARGIN, 0);
+        position.set(bp.getX() * cellSize + BOARD_MARGIN, -bp.getY() * cellSize + BOTTOM_MARGIN, 0);
 
         if (cell.isTile()){
             Texture texture = tileTextures.get(((Tile) cell).getType());
