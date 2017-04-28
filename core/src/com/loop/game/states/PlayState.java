@@ -3,6 +3,7 @@ package com.loop.game.states;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector3;
 import com.loop.game.GameModel.BasicPosition;
@@ -28,6 +29,8 @@ public class PlayState extends State {
 
     private Map<Byte, Texture> tileTextures;
     private Collection<Cell> cells;
+    private final String test = "player name";
+    private BitmapFont font;
 
     private Game game;
     private int chosenX, chosenY;
@@ -57,6 +60,7 @@ public class PlayState extends State {
         crrPlayer = new Texture("crrPlayer.png");
         firstPlayer = true;
         cam.setToOrtho(false, LoopGame.WIDTH, LoopGame.HEIGHT);
+        font = new BitmapFont(Gdx.files.internal("font.fnt"));
 
         game = new Game();
 
@@ -114,6 +118,8 @@ public class PlayState extends State {
         sb.draw(boardBackground, BOARD_MARGIN, BOTTOM_MARGIN, boardWidth, boardHeight);
         sb.draw(crrPlayer, firstPlayer ? 0 : LoopGame.WIDTH / 2, BOTTOM_MARGIN + boardHeight,
                 LoopGame.WIDTH / 2, LoopGame.HEIGHT - BOTTOM_MARGIN - boardHeight);
+        font.draw(sb, test, firstPlayer ? 0 : LoopGame.WIDTH / 2,
+                  crrPlayer.getHeight()/2 + BOTTOM_MARGIN + boardHeight );
 
         renderMenu(sb);
 
