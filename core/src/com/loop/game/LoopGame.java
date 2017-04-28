@@ -1,42 +1,41 @@
 package com.loop.game;
 
-import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.InputAdapter;
-import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.files.FileHandle;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.loop.game.states.GameStateManager;
-import com.loop.game.states.MenuState;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.utils.I18NBundle;
+import com.loop.game.States.MainMenu;
 
-public class LoopGame extends ApplicationAdapter {
-	public static final int WIDTH = 480;
-	public static final int HEIGHT = 800;
+import java.util.Locale;
 
-	public static final String TITLE = "Loop";
+public class LoopGame extends Game {
+    public SpriteBatch batch;
+    public BitmapFont font;
+    public Skin skin;
+    public I18NBundle loc;
+    public static final int WIDTH = 640;//Gdx.graphics.getWidth();
+    public static final int HEIGHT = 800;//Gdx.graphics.getHeight();
+    public static final String TITLE = "Loop";
 
-	private GameStateManager gsm;
+    public void create() {
+        batch = new SpriteBatch();
+        font = new BitmapFont();
+        skin = new Skin(Gdx.files.internal("uiskin.json"));
+        FileHandle baseFileHandle = Gdx.files.internal("bundle/Loc");
+        Locale locale = new Locale("pl");
+        loc = I18NBundle.createBundle(baseFileHandle, locale);
+        this.setScreen(new MainMenu(this));
+    }
 
-	private SpriteBatch batch;
-	
-	@Override
-	public void create () {
-		batch = new SpriteBatch();
-		gsm = new GameStateManager();
-		Gdx.gl.glClearColor(1, 1, 1, 1);
-		gsm.push(new MenuState(gsm));
+    public void render() { super.render(); }
 
-	}
+    public void dispose() {
+        batch.dispose();
+        font.dispose();
+        skin.dispose();
+    }
 
-	@Override
-	public void render () {
-
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		gsm.update(Gdx.graphics.getDeltaTime());
-		gsm.render(batch);
-	}
-	
-	@Override
-	public void dispose () {
-		batch.dispose();
-	}
 }
