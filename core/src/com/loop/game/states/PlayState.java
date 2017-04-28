@@ -30,6 +30,7 @@ public class PlayState extends State {
     private Map<Byte, Texture> tileTextures;
     private Collection<Cell> cells;
     private final String test = "player name";
+    private Texture tempToTest;
     private BitmapFont font;
 
     private Game game;
@@ -68,6 +69,7 @@ public class PlayState extends State {
 
         delta = new Vector3();
         delta.add(5*cellSize, 5*cellSize,0);
+        tempToTest = new Texture("badlogic.jpg");
 
         tileTextures = new HashMap<Byte, Texture>();
         addTileTextures();
@@ -144,8 +146,8 @@ public class PlayState extends State {
         int x = (int) (position.x - BOARD_MARGIN) / cellSize;
         int y = (int) (position.y - BOTTOM_MARGIN) / cellSize;
 
-        chosenX = x - 5;
-        chosenY = -y + 5;
+        chosenX = x - (int)delta.x/cellSize;
+        chosenY = -y + (int)delta.y/cellSize;
     }
 
     private void choseType(Vector3 position) {
@@ -214,6 +216,8 @@ public class PlayState extends State {
         if (cell.isTile()){
             Texture texture = tileTextures.get(((Tile) cell).getType());
             sb.draw(texture, position.x, position.y, cellSize, cellSize);
+        } else if (bp.getX() == chosenX && bp.getY() == chosenY){
+            sb.draw(tempToTest, position.x, position.y, cellSize, cellSize);
         } else if (isOnBoard(position)){
             sb.draw(crrPlayer, position.x, position.y, cellSize, cellSize);
         }
