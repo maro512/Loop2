@@ -6,6 +6,8 @@ package com.loop.game.GameModel;
  */
 public abstract class BasicPosition
 {
+    private static final int PRIME = 65537;
+
     // Dostęp do współrzędnych
     public abstract int getX();
     public abstract int getY();
@@ -22,7 +24,7 @@ public abstract class BasicPosition
     @Override
     public final int hashCode()
     { // Duża liczba pierwsza zapewnia większa niepowtarzalność, skoro x i y są "bliskie" 0.
-        return 65537 * getX() + getY(); // W praktyce będzie to kodowanie 1 do 1 :)
+        return PRIME * getX() + getY(); // W praktyce będzie to kodowanie 1 do 1 :)
     }
 
     @Override
@@ -56,9 +58,9 @@ public abstract class BasicPosition
      */
     public static BasicPosition fromHashCode(int hash)
     {
-        hash+= 65537/2;
-        int x= hash >0 ? hash/65537 : hash/65537-1;
-        int y= hash- x*65537- 65537/2; // poprawiona reszta z dzielenia
+        hash+= PRIME /2;
+        int x= hash >0 ? hash/ PRIME : hash / PRIME -1;
+        int y= hash- x* PRIME - PRIME /2; // poprawiona reszta z dzielenia
         return new Mutable().set(x,y);
     }
 }
@@ -91,8 +93,8 @@ class Position extends BasicPosition
     {
         switch (direction)
         {
-            case NORTH: return other.getY() - y; // other jest (powinien być) powyżej
-            case SOUTH: return y - other.getY(); // other jest (powinien być) poniżej
+            case SOUTH: return other.getY() - y; // other jest (powinien być) powyżej
+            case NORTH: return y - other.getY(); // other jest (powinien być) poniżej
             case EAST : return other.getX() - x; // other jest (powinien być) po prawej
             case WEST : return x - other.getX(); // other jest (powinien być) po lewej
         }
