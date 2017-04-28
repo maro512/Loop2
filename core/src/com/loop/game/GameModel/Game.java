@@ -26,6 +26,11 @@ public class Game {
         this.draw = false;
     }
 
+    public void setPlayers(Player p1, Player p2) {
+        players[0] = p1;
+        players[1] = p2;
+    }
+
     private void changePlayer() { currentPlayer ^= 1; }
 
     public Player pickFirstPlayer() {
