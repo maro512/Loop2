@@ -1,7 +1,8 @@
 package com.loop.game.GameModel;
 
-/** To jest uniwersalna klasa opisująca współrzędne na planszy LOOP. Służy do indeksowania
- * pól na planszy.
+/**
+ * To jest uniwersalna klasa opisująca współrzędne na planszy LOOP. Służy do indeksowania
+ * pól na planszy. Używa "ekroanowej" orientacji układu współrzędnych.
  * Created by Poitr on 2017-04-18
  */
 public abstract class BasicPosition
@@ -41,9 +42,9 @@ public abstract class BasicPosition
     {
         private int x=0, y=0;
 
-        public Mutable set(int _x, int _y)
+        public Mutable set(int _x, int _y) // Ustawia współrzędne z DOBRĄ ORIENTACJĄ!
         {
-            x=_x; y=_y;
+            x=_x; y= -_y;
             return this;
         }
 
@@ -51,6 +52,15 @@ public abstract class BasicPosition
         public int getX() { return x; }
         @Override
         public int getY() { return y; }
+
+        /** Metoda dekodująca. Ustala współrzędne w oparciu o podany kod. */
+        public Mutable setFromHashCode(int hash)
+        {
+            hash+= PRIME /2;
+            x= hash >0 ? hash/ PRIME : hash / PRIME -1;
+            y= hash- x* PRIME - PRIME /2; // poprawiona reszta z dzielenia
+            return this;
+        }
     }
 
     /**
@@ -58,10 +68,7 @@ public abstract class BasicPosition
      */
     public static BasicPosition fromHashCode(int hash)
     {
-        hash+= PRIME /2;
-        int x= hash >0 ? hash/ PRIME : hash / PRIME -1;
-        int y= hash- x* PRIME - PRIME /2; // poprawiona reszta z dzielenia
-        return new Mutable().set(x,y);
+        return new Mutable().setFromHashCode(hash);
     }
 }
 
@@ -74,7 +81,6 @@ class Position extends BasicPosition
     private int x,y;
 
     public Position(int xx, int yy) { x=xx; y=yy; }
-    //public Position(BasicPosition bp) { x=bp.getX(); y=bp.getY(); }
 
     // Dostęp do współrzędnych
     public int getX() { return x; }

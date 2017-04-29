@@ -165,7 +165,7 @@ public class PlayState extends State {
         int y = (int) (position.y - BOTTOM_MARGIN) / cellSize;
 
         chosenX = x - (int) delta.x / cellSize;
-        chosenY = -y + (int) delta.y / cellSize;
+        chosenY = y - (int) delta.y / cellSize; //Już nie trzeba uważać na znak. Board to robi.
     }
 
     private void choseType(Vector3 position) {
@@ -222,14 +222,14 @@ public class PlayState extends State {
     }
 
     private void renderCell(SpriteBatch sb, Cell cell) {
-        BasicPosition bp = cell.getPosition();
+        //BasicPosition bp = cell.getPosition();
         Vector3 position = new Vector3();
-        position.set(bp.getX() * cellSize + BOARD_MARGIN + delta.x, -bp.getY() * cellSize + BOTTOM_MARGIN + delta.y, 0);
+        position.set(cell.getX() * cellSize + BOARD_MARGIN + delta.x, cell.getY() * cellSize + BOTTOM_MARGIN + delta.y, 0);
 
-        if (cell.isTile()) {
-            Texture texture = tileTextures.get(((Tile) cell).getType());
+        if (cell.getType()>0){
+            Texture texture = tileTextures.get(cell.getType());
             sb.draw(texture, position.x, position.y, cellSize, cellSize);
-        } else if (bp.getX() == chosenX && bp.getY() == chosenY) {
+        } else if (cell.getX() == chosenX && cell.getY() == chosenY) {
             sb.draw(chosenCell, position.x, position.y, cellSize, cellSize);
         } else if (isOnBoard(position)) {
             sb.draw(emptyCell, position.x, position.y, cellSize, cellSize);
