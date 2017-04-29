@@ -15,6 +15,7 @@ public abstract class Cell
         neighbours = new Cell[4];
     }
 
+    /** Zwraca obiekt opisujacy pozycję pola w orientacji "ekranowej". */
     public final Position getPosition()
     {
         return position;
@@ -67,8 +68,8 @@ public abstract class Cell
     {
         if (direction<0 || direction >3) throw new IllegalArgumentException("Invalid direction.");
         if (cell==null || neighbours[direction]==cell) return; // Nie przypinaj null
-        if (!cell.position.equals(position.getNeighbour(direction)))
-            throw new IllegalArgumentException("Appending neighbour from wrong side.");
+        //if (!cell.position.equals(position.getNeighbour(direction)))
+            //throw new IllegalArgumentException("Appending neighbour from wrong side.");
         if (neighbours[direction]!=null)
             neighbours[direction].neighbours[direction ^2]=null; // Skasuj starego sąsiada
         fireAppend(direction,cell); // Zastanów się, czy zmiana sasiada coś znaczy
@@ -77,10 +78,9 @@ public abstract class Cell
         cell.neighbours[direction ^ 2]=this; // Ustaw sąsiada (this) nowemu sąsiadowi
     }
 
-    public boolean isTile()
-    {
-        return false;
-    }
+    public abstract byte getType();
+
+    public final boolean isTile() { return getType()>0; }
 
     /** Metoda pomocnicza do zastępowania płytki inną płytką. Kopiuje i powiadamia sąsiadów.
      * @param other
@@ -91,14 +91,16 @@ public abstract class Cell
         for(int dir =0; dir<4; dir++)
         {
             if (neighbours[dir]!=null)
-            {
-                //if (other==null) neighbours[dir].neighbours[dir^2]=null;
-                //else
                 other.append(dir, neighbours[dir]);
-            }
             neighbours[dir]=null;
         }
     }
+
+    /** Zwraca współrzedną X pola, z orientacją "geometryczną". */
+    public int getX() { return position.getX();}
+
+    /** Zwraca współrzedną Y pola, z orientacją "geometryczną". */
+    public int getY() { return -position.getY();}
 
     // Maski bitowe kierunków na potrzeby klas konretnych
     protected static final byte[] mask= new byte[]{1,2,4,8};
