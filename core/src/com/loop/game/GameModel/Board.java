@@ -9,7 +9,7 @@ import java.util.*;
  */
 public class Board
 {
-    private Map<BasicPosition, Cell> graph, view;
+    private Map<BasicPosition, Cell> graph;
     private Collection<Cell> bareCells;
     //private boolean whiteWin, blackWin; // Informacja o istnieniu pętli
     private List<Tile> whiteLine, blackLine; // Wygrywające linie;
@@ -18,8 +18,7 @@ public class Board
     public Board()
     {
         graph = new HashMap<BasicPosition, Cell>();
-        view = Collections.unmodifiableMap(graph);
-        bareCells = view.values();
+        bareCells = Collections.unmodifiableMap(graph).values();
         minimalWinningLength=8;
         Cell first = new EmptyCell( new Position(0,0) );
         graph.put(first.getPosition(),first );
@@ -45,8 +44,7 @@ public class Board
         return -minY;
     }
 
-    @Deprecated
-    public Map<BasicPosition, Cell> getCrrPosition() { return view; }
+    /** Metoda udostępniająca widok komórek planszy. */
     public Collection<Cell> getCells() { return bareCells; }
 
     // Stała opisująca długość linii wygrywającej niebędącej pętlą.
@@ -89,8 +87,9 @@ public class Board
     {
         BasicPosition p = tempPos.set(x,y);
         Cell place = graph.get(p);
-        if (place==null || place.getType()!=0) return null;
-        return (EmptyCell) place;
+        if (place==null || place.getType()>0) return null;
+        EmptyCell cell= (EmptyCell) place;
+        return cell.isDead() ? null : cell;
     }
 
     /** Wstawia płytkę podanego typu na zadane wolne pole.
@@ -129,14 +128,15 @@ public class Board
             }
             if (cell.getType()>0) continue; // Sąsiad-płytka już się nie zmieni
             EmptyCell place = (EmptyCell) cell;
-            if (place.isDetermined()) {
-                if (place.isDead()) graph.remove(place.getPosition()); // Błąd! Usuń pole
+            if (place.isDetermined())
+            {
+                if (place.isDead()) continue;
                 else addTile(place.createTile()); // Stwórz i wstaw deterministyczną płytkę.
             }
         }
         //if (debug) System.out.println("Wstawiono plytkę na "+tile.getPosition());
-        if (whiteLine==null) whiteLine=getWinningLine(tile, WHITE);
-        if (blackLine==null) blackLine=getWinningLine(tile, BLACK);
+        if (whiteLine==null) whiteLine= findWinningLine(tile, WHITE);
+        if (blackLine==null) blackLine= findWinningLine(tile, BLACK);
         //if (debug) System.out.println();
     }
 
@@ -150,7 +150,7 @@ public class Board
     }
 
     // Metoda sprawdzająca, czy z płytki nie wychodzi linia wygrywająca w danym kolorze.
-    private List<Tile> getWinningLine(Tile t, boolean color)
+    private List<Tile> findWinningLine(Tile t, boolean color)
     {
         //if (debug) System.out.print("\n\tCheckWin("+color+")"+t.getPosition()+"->");
         Cell end1 = t.getColorNeighbour(color); // Pierwszy sąsiad
