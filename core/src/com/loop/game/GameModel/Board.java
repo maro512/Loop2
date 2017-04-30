@@ -45,7 +45,7 @@ public class Board
         return -minY;
     }
 
-    //@Deprecated
+    @Deprecated
     public Map<BasicPosition, Cell> getCrrPosition() { return view; }
     public Collection<Cell> getCells() { return bareCells; }
 

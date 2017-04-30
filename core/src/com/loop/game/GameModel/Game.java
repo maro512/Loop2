@@ -93,7 +93,24 @@ public class Game {
     }
 
     public Collection<Cell> getBoardView(){
-        return board.getCrrPosition().values();
+        return board.getCells();
+    }
+
+    public boolean isTerminated() {
+        return board.isWhiteWin() || board.isBlackWin();
+    }
+
+    public List<Tile> getWinLine(){
+        List<Tile> line;
+        if (board.isWhiteWin()){
+            line = board.getWinningLine(false);
+            if (board.isBlackWin()){
+                line.addAll(board.getWinningLine(true));
+            }
+        } else {
+            line = board.getWinningLine(true);
+        }
+        return line;
     }
 
     public Player getCrrPlayer() { return players[currentPlayer]; }

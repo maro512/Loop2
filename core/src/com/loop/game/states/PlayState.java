@@ -25,7 +25,6 @@ public class PlayState extends State {
     private Texture boardBackground;
     private Texture crrPlayer;
     private Texture chosenCell;
-    private Texture emptyCell;
     private Texture background;
     private boolean firstPlayer;
     private Vector3 delta;
@@ -66,7 +65,6 @@ public class PlayState extends State {
         boardBackground = new Texture("boardBackground.png");
         crrPlayer = new Texture("crrPlayer.png");
         chosenCell = new Texture("chosenCell.png");
-        emptyCell = new Texture("emptyCell.png");
         background = new Texture("background.png");
         firstPlayer = true;
         cam.setToOrtho(false, LoopGame.WIDTH, LoopGame.HEIGHT);
@@ -121,7 +119,6 @@ public class PlayState extends State {
     @Override
     public void update(float dt) {
         handleInput();
-        cells = game.getBoardView();
     }
 
     @Override
@@ -136,10 +133,17 @@ public class PlayState extends State {
 
         renderMenu(sb);
 
+        boolean isTerminated = game.isTerminated();
         for (Cell c : cells) {
-            renderCell(sb, c);
+            renderCell(sb, c, isTerminated);
         }
-
+        if (isTerminated){
+            List<Tile> tiles = game.getWinLine();
+            for (Tile t : tiles) {
+                renderCell(sb, t, false);
+            }
+        }
+        
         sb.end();
     }
 
@@ -149,7 +153,6 @@ public class PlayState extends State {
         crrPlayer.dispose();
         chosenCell.dispose();
         background.dispose();
-        emptyCell.dispose();
         Collection<Texture> textures = tileTextures.values();
         for (Texture t : textures) {
             t.dispose();
@@ -204,6 +207,7 @@ public class PlayState extends State {
             String ss = "tile_" + b + "s.png";
             shadowTileTextures.put(b, new Texture(ss));
         }
+        tileTextures.put((byte) 0, new Texture("emptyCell.png"));
     }
 
     private void renderMenu(SpriteBatch sb) {
@@ -221,19 +225,27 @@ public class PlayState extends State {
 
     }
 
-    private void renderCell(SpriteBatch sb, Cell cell) {
-        //BasicPosition bp = cell.getPosition();
+    private void renderCell(SpriteBatch sb, Cell cell, boolean isTerminated) {
         Vector3 position = new Vector3();
         position.set(cell.getX() * cellSize + BOARD_MARGIN + delta.x, cell.getY() * cellSize + BOTTOM_MARGIN + delta.y, 0);
 
-        if (cell.getType()>0){
-            Texture texture = tileTextures.get(cell.getType());
-            sb.draw(texture, position.x, position.y, cellSize, cellSize);
-        } else if (cell.getX() == chosenX && cell.getY() == chosenY) {
-            sb.draw(chosenCell, position.x, position.y, cellSize, cellSize);
-        } else if (isOnBoard(position)) {
-            sb.draw(emptyCell, position.x, position.y, cellSize, cellSize);
+        if (isTerminated) {
+            if (isOnBoard(position) && cell.getType() > 0) {
+                Texture texture = shadowTileTextures.get(cell.getType());
+                sb.draw(texture, position.x, position.y, cellSize, cellSize);
+            }
+
+        } else {
+            if (isOnBoard(position)) {
+                Texture texture = tileTextures.get(cell.getType());
+                sb.draw(texture, position.x, position.y, cellSize, cellSize);
+            }
+            if (cell.getX() == chosenX && cell.getY() == chosenY && cell.getType() == 0) {
+                sb.draw(chosenCell, position.x, position.y, cellSize, cellSize);
+            }
         }
+
+
     }
 
     private void buildMenuStructure() {
