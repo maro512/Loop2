@@ -2,6 +2,7 @@ package com.loop.game.states;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -17,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.badlogic.gdx.Input.Peripheral.Vibrator;
+
 /**
  * Created by marek on 15.04.17.
  */
@@ -28,6 +31,7 @@ public class PlayState extends State {
     private Texture background;
     private boolean firstPlayer;
     private Vector3 delta;
+    private Sound error;
 
     private Map<Byte, Texture> tileTextures;
     private Map<Byte, Texture> shadowTileTextures;
@@ -66,6 +70,7 @@ public class PlayState extends State {
         crrPlayer = new Texture("crrPlayer.png");
         chosenCell = new Texture("chosenCell.png");
         background = new Texture("background.png");
+        error = Gdx.audio.newSound(Gdx.files.internal("error.wav"));
         firstPlayer = true;
         cam.setToOrtho(false, LoopGame.WIDTH, LoopGame.HEIGHT);
         font = new BitmapFont(Gdx.files.internal("font.fnt"));
@@ -143,7 +148,7 @@ public class PlayState extends State {
                 renderCell(sb, t, false);
             }
         }
-        
+
         sb.end();
     }
 
@@ -161,6 +166,7 @@ public class PlayState extends State {
         for (Texture t : textures) {
             t.dispose();
         }
+        error.dispose();
     }
 
     private void setChosenPosition(Vector3 position) {
@@ -168,7 +174,12 @@ public class PlayState extends State {
         int y = (int) (position.y - BOTTOM_MARGIN) / cellSize;
 
         chosenX = x - (int) delta.x / cellSize;
-        chosenY = y - (int) delta.y / cellSize; //Już nie trzeba uważać na znak. Board to robi.
+        chosenY = y - (int) delta.y / cellSize;
+
+        if (game.getPossibleMoves(chosenX, chosenY).isEmpty()){
+            error.play();
+        }
+
     }
 
     private void choseType(Vector3 position) {
@@ -180,6 +191,8 @@ public class PlayState extends State {
         if (possibleMoves.contains(type)) {
             game.makeMove(chosenX, chosenY, type);
             firstPlayer = !firstPlayer;
+        } else {
+            error.play();
         }
 
     }
