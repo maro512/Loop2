@@ -103,7 +103,29 @@ public class PlayState extends State {
                     setChosenPosition(position);
                 } else if (isOnMenu(position)) {
                     choseType(position);
+                } else if (position.x >= 0
+                        && position.x < BOARD_MARGIN
+                        && position.y < BOTTOM_MARGIN + boardHeight
+                        && position.y >= BOTTOM_MARGIN){
+                    delta.x -= cellSize;
+                } else if (position.x >= LoopGame.WIDTH - BOARD_MARGIN
+                        && position.x < LoopGame.WIDTH
+                        && position.y < BOTTOM_MARGIN + boardHeight
+                        && position.y >= BOTTOM_MARGIN){
+                    delta.x += cellSize;
+                } else if (position.x >= BOARD_MARGIN
+                        && position.x < LoopGame.WIDTH - BOARD_MARGIN
+                        && position.y < BOTTOM_MARGIN
+                        && position.y >= BOTTOM_MARGIN - BOARD_MARGIN){
+                    delta.y -= cellSize;
+                } else if (position.x >= BOARD_MARGIN
+                        && position.x < LoopGame.WIDTH - BOARD_MARGIN
+                        && position.y < BOTTOM_MARGIN + boardHeight + BOARD_MARGIN
+                        && position.y >= BOTTOM_MARGIN + boardHeight){
+                    delta.y += cellSize;
                 }
+
+
                 prevX = screenX;
                 prevY = screenY;
 
