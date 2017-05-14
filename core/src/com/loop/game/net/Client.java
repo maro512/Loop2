@@ -13,11 +13,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Klasa reprezentująca połąaczenie z serwerem LOOP. Kontroluje także komunikację z drugim graczem w ramach
+ * Klasa reprezentująca połączenie z serwerem LOOP. Kontroluje także komunikację z drugim graczem w ramach
  * prowadzenia rozgrywki.
- * @author Piotr
+ * Created by Piotr on 2017-05-13
  */
-public class Client implements Runnable
+public class Client
 {  
     private String name;
     private Socket server;
@@ -38,26 +38,23 @@ public class Client implements Runnable
     /** Uruchamia połaczenie z serwerem. Komunikacja dzieje się w osobnym wątku. */
     public void logIn(/* Jakieś dane uwierzytalniania? */)
     {
-        //if(state!= 0) throw new IllegalStateException("Net interface not ready!");
+        if(state!= -1) throw new IllegalStateException("Connection is open!");
         state=1;
-        Thread t = new Thread(this);
-        t.start();
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                serverReadingLoop();
+            }
+        }).start();
     }
-       
-    @Override
-    public void run()
+
+    /** Pętla komunikacji z serwerem (głównie odbiera dane) */
+    private void serverReadingLoop()
     {
-        state=1;
-        server=new Socket();
-        System.out.print("Connecting to server...");
         try {
-            server.connect(SERVER_ADDR, 10000);
-            System.out.println("complete!");
-            serverIn = new PrintWriter(server.getOutputStream(),true);
-            serverIn.println(LoopServer.CMD_LOGIN+" "+name);
-            Scanner serverOut = new Scanner(server.getInputStream());
-            System.out.println("Waiting for confirmation...");
-            if (serverOut.nextLine().startsWith(LoopServer.CMD_LOGIN)) state= 0;
+            Scanner serverOut = connectToServer();
             if(state==0) user.done(true);
             else
             {
@@ -89,16 +86,31 @@ public class Client implements Runnable
             }
         } 
     }
-    
+
+    private Scanner connectToServer() throws IOException
+    {
+        server=new Socket();
+        System.out.print("Connecting to server...");
+        server.connect(SERVER_ADDR, serverConnectionTimeout);
+        System.out.println("complete!");
+        serverIn = new PrintWriter(server.getOutputStream(), true);
+        serverIn.println(LoopServer.CMD_LOGIN+" "+name);
+        Scanner serverOut = new Scanner(server.getInputStream());
+
+        System.out.print("Waiting for confirmation... "); //Może tu też jakiś szybki czas na odpowiedź?
+        if (serverOut.nextLine().startsWith(LoopServer.CMD_LOGIN)) state= 0;
+        return serverOut;
+    }
+
     public void commitMove(String description) // Tu parametr typu Tile, albo jakiś inny kod ruchu.
     {
-        if(!isOtherPlayerConnected()) throw new IllegalStateException("Net interface not ready!");
+        if(!isOtherPlayerConnected()) throw new IllegalStateException("No connection with other player!");
         queue.offer(CMD_MOVE+" "+description);
     }
     
     public void commitGameEnd(String args)
     {
-        if(!isOtherPlayerConnected()) throw new IllegalStateException("Net interface not ready!");
+        if(!isOtherPlayerConnected()) throw new IllegalStateException("Not connected to other player!");
         if (args==null) queue.offer(CMD_GAMEEND);
         else queue.offer(CMD_GAMEEND+" "+args);
     }
@@ -125,13 +137,15 @@ public class Client implements Runnable
         });
         t.start();
     }
-    
+
+    /** Inicjowanie połączenia z innym graczem.
+     * Obsługuje pętlę odbierającą informacje od tego gracza. */
     private void doStartGame(String otherPlayerName)
     {
         try {
             int port=SERVER_PORT+new Random().nextInt(8)+1; // Na tym samym urządzeniu musimy mieć różne porty!
             ServerSocket awaiting = new ServerSocket(port);
-            awaiting.setSoTimeout(10000);
+            awaiting.setSoTimeout(otherPlayerConnectionTimeout);
             
             System.out.println("Wysłano rządanie do serwera...");
             if (otherPlayerName==null) serverIn.println(LoopServer.CMD_PLAY+" "+port); // Wyślij rządanie do serwera
@@ -157,26 +171,25 @@ public class Client implements Runnable
             }
             else
             {
-                //user.connectionError(false);
-                user.done(false);
+                user.done(false); // Zgłoś niepowodzenie operacji rozpoczęcia gry
             }
-            
         } catch (IOException ex) {
             ex.printStackTrace();
-            user.done(false);
+            user.done(false); // Błąd
         }
     }
-    
+
+    //  Zamyka połaczenie z drugim graczem.
     private void disconnectOther() 
     {
-        if (otherPlayer==null) return;
+        if (otherPlayer==null || otherPlayer.isClosed()) return;
         try{
                 otherPlayer.close();
         } catch (IOException ex) {            
         }
         otherPlayerOut=null;
         otherPlayer=null;
-        user.connectionDown(false);
+        //user.connectionDown(false);
     }
     
     private boolean dispath(String[] args)
@@ -189,7 +202,7 @@ public class Client implements Runnable
             return user.processCommand(args);
     }
     
-    // Obsługuje pętlę nasłuchiwania 
+    /** Nasłuchiwanie w pętli odpowiedzi drugiego gracza. */
     private void otherPlayerListener()
     {
         new Thread(new Runnable() {
@@ -197,49 +210,55 @@ public class Client implements Runnable
             public void run() {
                 otherPlayerSender();
             }
-        }).start();
+        }).start(); // Uruchom wątek wysyłania
         try {
             Scanner in = new Scanner( otherPlayer.getInputStream() );
             while(in.hasNextLine())
             {
-                String[] cmd = in.nextLine().split(" ");
+                String cmd0=in.nextLine();
+                String[] cmd = cmd0.split(" ");
                 if (! user.processCommand(cmd)
                         || cmd[0].equals(CMD_CLEAR)) break;
+                if (cmd[0].equals(CMD_GAMEEND))
+                {
+                    serverIn.println(cmd0); // Przekaż informację o zakończeniu gry do serwera.
+                    break;
+                }
             }
-        } catch (IOException ex) {
-            user.connectionDown(false);
+        } catch (IOException ex)
+        {
         }
-         try {
+        try {
+            //user.connectionDown(false);
             queue.put(CMD_CLEAR);
-        } catch (InterruptedException ex) {
+        } catch (InterruptedException ex) { // To się nie powinno nigdy zdarzyć
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+        System.out.println("Połączenie z drugim graczem zamknięte.");
     }
-    
-    private void otherPlayerSender() // Obsługuje wysyłanie informacji do gracza
+
+    /** Wysyłanie kolejnych informacji do drugiego gracza. */
+    private void otherPlayerSender()
     {
         try {
             while(true)
             {
                 String cmd=queue.take();
                 otherPlayerOut.println(cmd);
-                if (cmd.startsWith(CMD_GAMEEND))
-                {
-                    serverIn.println(cmd); break; // Poinformuj serwer o końcu gry
-                }
-                else if (cmd.startsWith(CMD_CLEAR)) break;
+                if (cmd.startsWith(CMD_CLEAR)) break;
             }
             serverIn.println(CMD_CLEAR); // Zgłoś serwerowi koniec gry.
             queue.clear();
-        } catch (Exception ex) { user.connectionDown(false); }
+        } catch (Exception ex) {  }
         finally
         {
             disconnectOther();
+            user.connectionDown(false);
         }
         System.out.println("Zamknięcie wątku wychodzacego.");
     }
-    
+
+    /** Nawiązywanie połaczenia z drugim graczem. */
     private boolean acceptPlayRequest(String[] args)
     {
         InetSocketAddress address = new InetSocketAddress(args[1],Integer.parseInt(args[2]));
@@ -292,4 +311,18 @@ public class Client implements Runnable
         
     public static final String SERVER_ADDRESS = "localhost";
     private static final InetSocketAddress SERVER_ADDR = new InetSocketAddress(SERVER_ADDRESS, SERVER_PORT);
+
+    /* Czasy oczekiwania na połączenie w milisekundach. */
+    private int serverConnectionTimeout = 6000;
+    private int otherPlayerConnectionTimeout = 10000;
+
+    public void setServerConnectionTimeout(int timeout)
+    {
+        this.serverConnectionTimeout = timeout;
+    }
+
+    public void setOtherPlayerConnectionTimeout(int timeout)
+    {
+        this.otherPlayerConnectionTimeout = timeout;
+    }
 }

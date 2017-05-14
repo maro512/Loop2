@@ -12,7 +12,7 @@ import java.util.concurrent.*;
 
 /**
  * Klasa serwera gry LOOP. Nasłuchuje na porcie o numerze 7457.
- * @author Piotr
+ * Created by Piotr on 2017-05-13
  */
 public class LoopServer implements Runnable
 {
@@ -21,7 +21,7 @@ public class LoopServer implements Runnable
         new LoopServer().run();
     }
     
-    public ServerSocket main;
+    private ServerSocket main;
     
     public LoopServer()
     {
@@ -55,6 +55,7 @@ public class LoopServer implements Runnable
     
     enum State { NULL, ASK, GAME, TERMINATE, LOCKED }
 
+    /** Wewnętrzna klasa reprezentująca połączenie z pojedyńczym klientem. */
     class ClientInteraction implements Runnable
     {
         public ClientInteraction(Socket socket)
@@ -73,16 +74,15 @@ public class LoopServer implements Runnable
         private Thread sendingThread; // To jest wątek, który trzeba potem zabić.
 
         @Override
-        public void run() // Wątek komunikacji z pojedynczym klientem
+        public void run() // Pętla komunikacji z pojedynczym klientem
         {
             try {
-                if ( introduceClient() ) return;
+                if ( introduceClient() ) return; // Błąd logowania.
                 while(in.hasNextLine() ) // Przetwarzanie w pętli zapytań klienta.
                 {
-                    //if (!playRequests.isEmpty()) { processRequests(); continue;}
                     String[] command = in.nextLine().split(" ");
                     System.out.println("("+name+"): "+Arrays.toString(command));
-                    //if (!isAvailable()) continue;
+
                     if (command[0].equals(CMD_PLAY)) cmdPlay(command);
                     else if (command[0].equals(CMD_CLEAR)) cmdClear();
                     else if (command[0].equals(CMD_GAMEEND)) cmdGameEnd(command);
@@ -91,7 +91,7 @@ public class LoopServer implements Runnable
                     else if(command[0].equals(CMD_LISTAVAILABLE)) cmdListAvailable(command);
                     else
                     {
-                        if(!command[0].equals(CMD_LOGOUT)) // Nie będzie wylogowania, tylko 
+                        if(!command[0].equals(CMD_LOGOUT))
                         {
                             System.err.println(
                                 "Communication protocol error. Connection terminated.");
@@ -108,7 +108,8 @@ public class LoopServer implements Runnable
             logout();
             System.out.println("Podłączeni: "+Arrays.toString(clients.keySet().toArray()));
         }
-        
+
+        /** Pętla wysyłająca zakolejkowane odpowiedzi serwera do klienta. */
         private void sendingLoop() // Wątek obsługujący wysyłane komunikaty.
         {
             try {
@@ -116,7 +117,7 @@ public class LoopServer implements Runnable
                 {
                     out.println(queue.take());
                 }
-            } catch (Exception ex)
+            } catch (Exception ex) // Ten wątek zostanie bestialsko przerwany!
             {
             }
         }
@@ -125,6 +126,11 @@ public class LoopServer implements Runnable
         private void cmdClear()
         {
             state=State.NULL;
+            if(otherPlayer!=null)
+            {
+                queue.offer(CMD_CLEAR); // Potwierdź graczowi, że został odłączony
+                otherPlayer.queue.offer(CMD_CLEAR); // Potwierdź drugiemu graczowi, że został odłączony
+            }
             detach();
         }
         
@@ -143,15 +149,17 @@ public class LoopServer implements Runnable
             state=State.ASK;
             if (player2.queue.offer(request))
             {
+                player2.attach(this);
                 state = player2.state= State.GAME;
             }
         }
         
         /** Odbiera informację o zakończeniu gry.
          * Docelowo może aktualizować rankingi w bazie.
-         * W obecnej wersji "protokolu" GAMEEND nie zamyka połączenia - to robi komenda CLEAR */
+         * W obecnej wersji "protokołu" GAMEEND nie zamyka połączenia - to robi komenda CLEAR */
         private void cmdGameEnd(String[] args)
         {
+            if (otherPlayer==null || state!=State.GAME) return; // throw new IllegalStateException("There is no game played!");
             System.out.println("Gra zakończona przez gracza \""+name+"\".");
             queue.offer(CMD_GAMEEND+" "+otherPlayer.name);
             otherPlayer.queue.offer(CMD_GAMEEND+" "+name);
@@ -166,7 +174,7 @@ public class LoopServer implements Runnable
             //TODO
         }
         
-        // inne metody do obsługi zapytań.
+        // inne metody do obsługi zapytań
         
         /** Zamykanie połaczenia z klientem. */
         private void logout()
@@ -209,7 +217,7 @@ public class LoopServer implements Runnable
                 System.out.print("Wysyłanie graczowi "+other.name+" odmowy... ");
                 InetSocketAddress address = new InetSocketAddress(other.socket.getInetAddress().getHostAddress(),other.clientPort);
                 Socket returnSocket = new Socket();
-                returnSocket.connect(address,10000);
+                returnSocket.connect(address, playRequestConnectionTimeout);
                 new PrintWriter(returnSocket.getOutputStream(),true).println(CMD_CLEAR);
                 System.out.print("zrobione! ");
                 returnSocket.close();
@@ -268,16 +276,16 @@ public class LoopServer implements Runnable
         {
             in = new Scanner(socket.getInputStream());
             out = new PrintWriter(socket.getOutputStream(),true);
-            if (!in.hasNextLine())
+            String hello= timeLimitedReadLine(in,loginTimeout); // Serwer czeka tylko chwilę na logowanie
+            if (hello==null)
             {
                 socket.close();
-                System.out.println("NIE ZALOGOWANO: "+toString());
+                System.out.println("\tNieudane połączenie! "+socket.getInetAddress().toString());
                 return true;
             }
-            String hello = in.next();
             name = null;
-            if (hello.equals(CMD_LOGIN))
-                authenticateUser(in.nextLine());
+            if (hello.startsWith(CMD_LOGIN))
+                authenticateUser(hello.substring(CMD_LOGIN.length()));
             if (name != null)
             {
                 clients.put(name,this);
@@ -312,5 +320,39 @@ public class LoopServer implements Runnable
     public static final String CMD_CLEAR            ="eNdALl"; // Gwałtowny koniec gry
     public static final String CMD_GAMEEND          ="KonIEc"; // Oficjalny koniec gry
     public static final String ERROR                ="erROr";  // Coś na wypadek błędu.
+
+    private static String timeLimitedReadLine(final Scanner in, long milis)
+    {
+        String res=null;
+        FutureTask<String> task = new FutureTask<String>(new Callable<String>()
+        {
+            @Override
+            public String call() throws Exception
+            {
+                return in.nextLine();
+            }
+        });
+        new Thread(task).start();
+        try
+        {
+            return task.get(milis,TimeUnit.MILLISECONDS);
+        } catch (Exception e)
+        {
+            return null;
+        }
+    }
+
+    private long loginTimeout= 1000;
+    private int playRequestConnectionTimeout= 10000;
+
+    public void setPlayRequestConnectionTimeout(int timeout)
+    {
+        playRequestConnectionTimeout = timeout;
+    }
+
+    public void setLoginTimeout(long timeout)
+    {
+        loginTimeout=timeout;
+    }
 }
 

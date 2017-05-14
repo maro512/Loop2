@@ -8,7 +8,7 @@ package com.loop.game.net;
  * Interfejs nasłuchujący odpowiedzi serwera/drugiego gracza w ramach komunikacji sieciowej.
  * Pytania do serwera wysyłamy przez obiekt <code>Client</code>.
  * UWAGA. Zdarzenia są, co do zasady, wywoływane przez osobne wątki. Należy na to uważać.
- * @author Piotr
+ * Created by Piotr on 2017-05-13
  */
 public interface ConnectionListener
 {
@@ -16,7 +16,7 @@ public interface ConnectionListener
     boolean processCommand(String[] command);
     
     /** Zdarzenie przerwania połączenia.
-     * Parametr oznacza, czy przerwano połączenie z drugim graczem, czy z serwerem. */
+     * Parametr oznacza, czy przerwano połączenie z drugim graczem (false), czy z serwerem (true). */
     void connectionDown(boolean server);
     
     /** Wywoływana by powiadomić o powodzeniu/klęsce ostatnij akcji zainicjowanej przez użytkownika. */
