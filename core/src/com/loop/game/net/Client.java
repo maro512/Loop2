@@ -13,19 +13,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Klasa reprezentująca połączenie z serwerem LOOP. Kontroluje także komunikację z drugim graczem w ramach
- * prowadzenia rozgrywki.
+ * Klasa reprezentująca połączenie z serwerem LOOP. Kontroluje także komunikację
+ * z drugim graczem w ramach prowadzenia rozgrywki.
  * Created by Piotr on 2017-05-13
  */
 public class Client
 {  
     private String name;
+    private ConnectionListener user;
     private Socket server;
     private PrintWriter serverIn;
-    private PrintWriter otherPlayerOut;
+
     private Socket otherPlayer;
-    private ConnectionListener user;
     private BlockingQueue<String> queue;
+    private PrintWriter otherPlayerOut;
     private byte state=-1;
     
     public Client(String name, ConnectionListener listener)
@@ -34,11 +35,11 @@ public class Client
         user = listener;
         queue=new LinkedBlockingQueue<String>();
     }
-    
-    /** Uruchamia połaczenie z serwerem. Komunikacja dzieje się w osobnym wątku. */
-    public void logIn(/* Jakieś dane uwierzytalniania? */)
+
+    /** Uruchamia połączenie z serwerem. Komunikacja dzieje się w osobnym wątku. */
+    public void logIn(/* Jakieś dane uwierzytelniania? */)
     {
-        if(state!= -1) throw new IllegalStateException("Connection is open!");
+        if(state!= -1) throw new IllegalStateException("Connection is already open?");
         state=1;
         new Thread(new Runnable()
         {
@@ -91,7 +92,7 @@ public class Client
     {
         server=new Socket();
         System.out.print("Connecting to server...");
-        server.connect(SERVER_ADDR, serverConnectionTimeout);
+        server.connect(serverAddress, serverConnectionTimeout);
         System.out.println("complete!");
         serverIn = new PrintWriter(server.getOutputStream(), true);
         serverIn.println(LoopServer.CMD_LOGIN+" "+name);
@@ -102,33 +103,39 @@ public class Client
         return serverOut;
     }
 
+    /** Wysyła do drugiego gracza informację o ruchu. */
     public void commitMove(String description) // Tu parametr typu Tile, albo jakiś inny kod ruchu.
     {
         if(!isOtherPlayerConnected()) throw new IllegalStateException("No connection with other player!");
         queue.offer(CMD_MOVE+" "+description);
     }
-    
+
+    /** Wysyła do drugiego gracza informację o zakończeniu gry. */
     public void commitGameEnd(String args)
     {
         if(!isOtherPlayerConnected()) throw new IllegalStateException("Not connected to other player!");
         if (args==null) queue.offer(CMD_GAMEEND);
         else queue.offer(CMD_GAMEEND+" "+args);
     }
-    
+
+    /** Zwraca, czy jest aktywne połączenie z serwerem. */
     public boolean isServerConnected()
     {
         return server!=null && server.isConnected() && !server.isClosed();
     }
-    
+
+    /** Zwraca, czy jest aktywne połączenie z innym graczem. */
     public boolean isOtherPlayerConnected()
     {
         return otherPlayer!=null && otherPlayer.isConnected() && !otherPlayer.isClosed();
     }
-    
+
+    /** Łączy się z serwerem aby zainicjować połączenie z innym graczem. */
     public void startGame(final String otherPlayerName)
     {
         if(!isServerConnected()) throw new IllegalStateException("Net interface not ready!");
         if (isOtherPlayerConnected()) return; // To powinien być wyjątek, ale psułby mi testy
+        state=1;
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -143,7 +150,7 @@ public class Client
     private void doStartGame(String otherPlayerName)
     {
         try {
-            int port=SERVER_PORT+new Random().nextInt(8)+1; // Na tym samym urządzeniu musimy mieć różne porty!
+            int port= SERVER_PORT + new Random().nextInt(8)+1; // Na tym samym urządzeniu musimy mieć różne porty!
             ServerSocket awaiting = new ServerSocket(port);
             awaiting.setSoTimeout(otherPlayerConnectionTimeout);
             
@@ -309,8 +316,14 @@ public class Client
     public static final String[] ERROR_COMMAND = { LoopServer.ERROR };
     public static final String CMD_MOVE     = "MovE";
         
-    public static final String SERVER_ADDRESS = "localhost";
-    private static final InetSocketAddress SERVER_ADDR = new InetSocketAddress(SERVER_ADDRESS, SERVER_PORT);
+    public static final String SERVER_ADDRESS = "localhost"; // Domyślny adres serwera.
+    private InetSocketAddress serverAddress = new InetSocketAddress(SERVER_ADDRESS, SERVER_PORT);
+
+    public void setServerAddress(String address)
+    {
+        if(state!= -1) throw new IllegalStateException("Connection is already open?");
+        serverAddress =new InetSocketAddress(address, SERVER_PORT);
+    }
 
     /* Czasy oczekiwania na połączenie w milisekundach. */
     private int serverConnectionTimeout = 6000;

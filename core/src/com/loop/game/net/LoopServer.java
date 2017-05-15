@@ -22,6 +22,7 @@ public class LoopServer implements Runnable
     }
     
     private ServerSocket main;
+    private final ExecutorService executor= Executors.newCachedThreadPool();;
     
     public LoopServer()
     {
@@ -34,12 +35,14 @@ public class LoopServer implements Runnable
         try {
             main = new ServerSocket(SERVER_PORT);
             boolean go = true;
-            System.out.print("\tSerwer waits for new connection...");
+            System.out.println(InetAddress.getLocalHost().getHostAddress());
+            System.out.print("\tSerwer waits for new connection... ");
+            //executor
             while(go)
             {
                 Socket incomming= main.accept();
                 System.out.println(" Connected!");
-                new Thread(new ClientInteraction(incomming)).start();
+                executor.execute(new ClientInteraction(incomming));
             }
             main.close();
         } catch (IOException ex)
@@ -113,14 +116,17 @@ public class LoopServer implements Runnable
         private void sendingLoop() // Wątek obsługujący wysyłane komunikaty.
         {
             try {
-                while(socket!=null && !socket.isClosed())
+                String cmd=queue.take();
+                while(socket!=null && !socket.isClosed() && cmd!=CLOSE_POINTER)
                 {
-                    out.println(queue.take());
+                    out.println(cmd);
+                    cmd=queue.take();
                 }
-            } catch (Exception ex) // Ten wątek zostanie bestialsko przerwany!
+            } catch (Exception ex)
             {
             }
         }
+        private static final String CLOSE_POINTER= "\n";
         
         /** Czyści stan komunikacji z graczem. */
         private void cmdClear()
@@ -182,8 +188,7 @@ public class LoopServer implements Runnable
             clients.remove(name);
             detach();
             System.out.println("Wylogowanie "+toString());
-            if (sendingThread!=null && sendingThread.isAlive()) // Zakończ wątek wysyłający
-                sendingThread.interrupt();
+            queue.add(CLOSE_POINTER);
             try
             {
                 socket.close(); // Zamknij połączenie
@@ -193,7 +198,7 @@ public class LoopServer implements Runnable
             }
         }
         
-        boolean locked=true;
+        //boolean locked=true;
 
         private void attach(ClientInteraction other)
         {
@@ -254,7 +259,7 @@ public class LoopServer implements Runnable
         public String toString()
         {
             InetSocketAddress addr = (InetSocketAddress) socket.getRemoteSocketAddress();
-            return "\""+name+"\"("+ addr.toString()+")";
+            return "\""+name+"\" ("+ addr.toString()+")";
         }
 
         //TODO Nie wiem jak to bedzie ostatecznie działać. 
@@ -291,13 +296,14 @@ public class LoopServer implements Runnable
                 clients.put(name,this);
                 queue=new LinkedBlockingQueue<String>();
                 queue.add(CMD_LOGIN+" "+name); //out.flush();
-                sendingThread = new Thread(new Runnable() { // Odpalanie wątku wysyłającego
+                //sendingThread = new Thread(
+                executor.execute(new Runnable() { // Odpalanie wątku wysyłającego
                     @Override
                     public void run() {
                         sendingLoop();
                     }
-                });
-                sendingThread.start();
+                } );
+                //sendingThread.start();
                 System.out.println("Zalogowano: "+toString());
             }
             else
@@ -321,7 +327,7 @@ public class LoopServer implements Runnable
     public static final String CMD_GAMEEND          ="KonIEc"; // Oficjalny koniec gry
     public static final String ERROR                ="erROr";  // Coś na wypadek błędu.
 
-    private static String timeLimitedReadLine(final Scanner in, long milis)
+    private String timeLimitedReadLine(final Scanner in, long milis)
     {
         String res=null;
         FutureTask<String> task = new FutureTask<String>(new Callable<String>()
@@ -332,7 +338,8 @@ public class LoopServer implements Runnable
                 return in.nextLine();
             }
         });
-        new Thread(task).start();
+        executor.execute(task);
+        //new Thread(task).start();
         try
         {
             return task.get(milis,TimeUnit.MILLISECONDS);

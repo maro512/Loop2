@@ -29,9 +29,11 @@ public class ClientTest implements ConnectionListener
         ClientTest obj = new ClientTest();
         System.out.println("Klient: "+obj.name);
         obj.client = new Client(obj.name,obj);
+        if ( args.length>0 )
+            obj.client.setServerAddress(args[0]);
         obj.client.logIn();
         System.in.read();
-        if(obj.step==0) obj.nextStep();
+        if(obj.step<3) obj.nextStep();
         //System.in.read();
     }
 
@@ -84,6 +86,7 @@ public class ClientTest implements ConnectionListener
             @Override
             public void run() { // */
                 try {
+                    Thread.sleep(600);
                     System.out.print("["+name+"]: "+step);
                     switch(step)
                     {
