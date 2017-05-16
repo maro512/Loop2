@@ -22,7 +22,6 @@ public class OptionsMenu implements Screen {
     // TODO: plik cfg?
     private final LoopGame game;
     private final Stage stage;
-    private final ScreenViewport sv;
     private final TextButton soundBtn;
     private final TextButton skinBtn;
     private final TextButton langBtn;
@@ -41,8 +40,7 @@ public class OptionsMenu implements Screen {
         this.skinBtn = new TextButton(game.loc.get("skinText"), game.skin); // docelowo pobieranie z cfg
         this.langBtn = new TextButton(game.loc.get(langFlag ? "lngEnglish" : "lngPolish"), game.skin);
         this.backBtn = new TextButton(game.loc.get("back"), game.skin);
-        this.sv = new ScreenViewport();
-        this.stage = new Stage(sv);
+        this.stage = new Stage(new ScreenViewport());
         fillStage();
         Gdx.input.setInputProcessor(stage);
     }

@@ -19,7 +19,6 @@ import com.loop.game.LoopGame;
 public class MainMenu implements Screen {
     private final LoopGame game;
     private final Stage stage;
-    private final ScreenViewport sv;
     private final TextButton offlineBtn;
     private final TextButton onlineBtn;
     private final TextButton optBtn;
@@ -29,8 +28,7 @@ public class MainMenu implements Screen {
         this.offlineBtn = new TextButton(game.loc.get("startOffline"), game.skin);
         this.onlineBtn = new TextButton(game.loc.get("startOnline"), game.skin);
         this.optBtn = new TextButton(game.loc.get("options"), game.skin);
-        this.sv = new ScreenViewport();
-        this.stage = new Stage(sv);
+        this.stage = new Stage(new ScreenViewport());
         fillStage();
         Gdx.input.setInputProcessor(stage);
     }

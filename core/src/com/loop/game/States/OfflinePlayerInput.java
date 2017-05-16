@@ -22,7 +22,6 @@ import java.util.Locale;
 public class OfflinePlayerInput implements Screen {
     private final LoopGame game;
     private final Stage stage;
-    private final ScreenViewport sv;
     private TextField [] inputField;
     private String [] playerNames;
     private TextButton startBtn;
@@ -36,8 +35,7 @@ public class OfflinePlayerInput implements Screen {
         for (int i=0; i<PLAYERS; ++i) {
             inputField[i] = new TextField(game.loc.get("playerPrompt") + " " + (i+1), game.skin);
         }
-        this.sv = new ScreenViewport();
-        this.stage = new Stage(sv);
+        this.stage = new Stage(new ScreenViewport());
         fillStage();
         Gdx.input.setInputProcessor(stage);
     }
