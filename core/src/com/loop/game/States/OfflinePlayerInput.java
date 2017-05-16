@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.loop.game.GameModel.Player;
 import com.loop.game.LoopGame;
 
 import java.util.Locale;
@@ -23,18 +24,21 @@ public class OfflinePlayerInput implements Screen {
     private final LoopGame game;
     private final Stage stage;
     private TextField [] inputField;
-    private String [] playerNames;
+    private Player [] players;
     private TextButton startBtn;
     private final int PLAYERS = 2;
 
     public OfflinePlayerInput(final LoopGame game) {
         this.game = game;
-        playerNames = new String [2];
+        players = new Player [2];
         inputField = new TextField [2];
         this.startBtn = new TextButton(game.loc.get("startGame"), game.skin);
+
         for (int i=0; i<PLAYERS; ++i) {
-            inputField[i] = new TextField(game.loc.get("playerPrompt") + " " + (i+1), game.skin);
+            inputField[i] = new TextField("", game.skin);
+            inputField[i].setMessageText(game.loc.get("playerPrompt") + " " + (i+1));
         }
+
         this.stage = new Stage(new ScreenViewport(), game.batch);
         fillStage();
         Gdx.input.setInputProcessor(stage);
@@ -61,8 +65,8 @@ public class OfflinePlayerInput implements Screen {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
                 for (int i=0; i<PLAYERS; ++i) {
-                    playerNames[i] = inputField[i].getText();
-                    System.out.println("Player " + i + " name: " + playerNames[i]);
+                    players[i] = new Player(inputField[i].getText());
+                    System.out.println("Player " + i + " name: " + players[i].getName());
                 }
             }
         });
