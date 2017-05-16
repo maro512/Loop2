@@ -12,23 +12,34 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.loop.game.LoopGame;
 
+import java.util.Locale;
+
 /**
  * Created by tobi on 4/28/17.
  */
 
-public class MainMenu implements Screen {
+public class OptionsMenu implements Screen {
     private final LoopGame game;
     private final Stage stage;
     private final ScreenViewport sv;
-    private final TextButton offlineBtn;
-    private final TextButton onlineBtn;
-    private final TextButton optBtn;
+    private final TextButton soundBtn;
+    private final TextButton skinBtn;
+    private final TextButton langBtn;
+    private final TextButton backBtn;
+    private boolean soundFlag;
 
-    public MainMenu(final LoopGame game) {
+    // zmienne temp, do testow
+        private boolean langFlag; // 1 - ang, 0 - polski
+    // koniec temp
+
+    public OptionsMenu(final LoopGame game) {
         this.game = game;
-        this.offlineBtn = new TextButton(game.loc.get("startOffline"), game.skin);
-        this.onlineBtn = new TextButton(game.loc.get("startOnline"), game.skin);
-        this.optBtn = new TextButton(game.loc.get("options"), game.skin);
+        this.soundFlag = true; // docelowo pobranie z cfg
+        this.langFlag = true; // docelowo pobranie z cfg
+        this.soundBtn = new TextButton(game.loc.get(soundFlag ? "soundOn" : "soundOff"), game.skin);
+        this.skinBtn = new TextButton(game.loc.get("skinText"), game.skin); // docelowo pobieranie z cfg
+        this.langBtn = new TextButton(game.loc.get(langFlag ? "lngEnglish" : "lngPolish"), game.skin);
+        this.backBtn = new TextButton(game.loc.get("back"), game.skin);
         this.sv = new ScreenViewport();
         this.stage = new Stage(sv);
         fillStage();
@@ -39,33 +50,46 @@ public class MainMenu implements Screen {
         VerticalGroup vg = new VerticalGroup();
         vg.setFillParent(true);
         vg.space(2);
-        vg.addActor(offlineBtn);
-        vg.addActor(onlineBtn);
-        vg.addActor(optBtn);
+        vg.addActor(soundBtn);
+        vg.addActor(skinBtn);
+        vg.addActor(langBtn);
+        vg.addActor(backBtn);
         vg.center();
         setButtonActions();
         stage.addActor(vg);
     }
 
     private void setButtonActions() {
-        offlineBtn.addListener(new ChangeListener() {
+        soundBtn.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                game.setScreen(new OfflinePlayerInput(game));
+                soundFlag = !soundFlag;
+                soundBtn.setText(game.loc.get(soundFlag ? "soundOn" : "soundOff"));
             }
         });
 
-        onlineBtn.addListener(new ChangeListener() {
+        skinBtn.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                System.out.println("Online Game Button Pressed");
+                System.out.println("Button Pressed");
             }
         });
 
-        optBtn.addListener(new ChangeListener() {
+        langBtn.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                game.setScreen(new OptionsMenu(game));
+                langFlag = !langFlag;
+                game.changeLang(langFlag ? new Locale("en") : new Locale("pl"));
+                langBtn.setText(game.loc.get(langFlag ? "lngEnglish" : "lngPolish"));
+            }
+        });
+
+        backBtn.addListener(new ChangeListener() {
+            @Override
+            public void changed (ChangeEvent event, Actor actor) {
+                // TODO: zapis opcji
+
+                game.setScreen(new MainMenu(game));
                 dispose();
             }
         });

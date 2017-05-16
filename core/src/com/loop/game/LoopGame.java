@@ -16,21 +16,24 @@ public class LoopGame extends Game {
     public BitmapFont font;
     public Skin skin;
     public I18NBundle loc;
-    public static final int WIDTH = 640;//Gdx.graphics.getWidth();
-    public static final int HEIGHT = 800;//Gdx.graphics.getHeight();
+    public static final int WIDTH = 640; // docelowo Gdx.graphics.getWidth();
+    public static final int HEIGHT = 800;// docelowo Gdx.graphics.getHeight();
     public static final String TITLE = "Loop";
+
+    private FileHandle langPath;
 
     public void create() {
         batch = new SpriteBatch();
         font = new BitmapFont();
         skin = new Skin(Gdx.files.internal("uiskin.json"));
-        FileHandle baseFileHandle = Gdx.files.internal("bundle/Loc");
-        Locale locale = new Locale("pl");
-        loc = I18NBundle.createBundle(baseFileHandle, locale);
+        langPath = Gdx.files.internal("bundle/Loc");
+        loc = I18NBundle.createBundle(langPath, new Locale("en"));
         this.setScreen(new MainMenu(this));
     }
 
     public void render() { super.render(); }
+
+    public void changeLang ( Locale lng ) { loc = I18NBundle.createBundle(langPath, lng); }
 
     public void dispose() {
         batch.dispose();

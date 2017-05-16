@@ -7,28 +7,35 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.loop.game.LoopGame;
 
+import java.util.Locale;
+
 /**
  * Created by tobi on 4/28/17.
  */
 
-public class MainMenu implements Screen {
+public class OfflinePlayerInput implements Screen {
     private final LoopGame game;
     private final Stage stage;
     private final ScreenViewport sv;
-    private final TextButton offlineBtn;
-    private final TextButton onlineBtn;
-    private final TextButton optBtn;
+    private TextField [] inputField;
+    private String [] playerNames;
+    private TextButton startBtn;
+    private final int PLAYERS = 2;
 
-    public MainMenu(final LoopGame game) {
+    public OfflinePlayerInput(final LoopGame game) {
         this.game = game;
-        this.offlineBtn = new TextButton(game.loc.get("startOffline"), game.skin);
-        this.onlineBtn = new TextButton(game.loc.get("startOnline"), game.skin);
-        this.optBtn = new TextButton(game.loc.get("options"), game.skin);
+        playerNames = new String [2];
+        inputField = new TextField [2];
+        this.startBtn = new TextButton(game.loc.get("startGame"), game.skin);
+        for (int i=0; i<PLAYERS; ++i) {
+            inputField[i] = new TextField(game.loc.get("playerPrompt") + " " + (i+1), game.skin);
+        }
         this.sv = new ScreenViewport();
         this.stage = new Stage(sv);
         fillStage();
@@ -39,34 +46,26 @@ public class MainMenu implements Screen {
         VerticalGroup vg = new VerticalGroup();
         vg.setFillParent(true);
         vg.space(2);
-        vg.addActor(offlineBtn);
-        vg.addActor(onlineBtn);
-        vg.addActor(optBtn);
         vg.center();
+
+        for (int i=0; i<PLAYERS; ++i) {
+            vg.addActor(inputField[i]);
+        }
+
+        vg.addActor(startBtn);
+
         setButtonActions();
         stage.addActor(vg);
     }
 
     private void setButtonActions() {
-        offlineBtn.addListener(new ChangeListener() {
+        startBtn.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                game.setScreen(new OfflinePlayerInput(game));
-            }
-        });
-
-        onlineBtn.addListener(new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-                System.out.println("Online Game Button Pressed");
-            }
-        });
-
-        optBtn.addListener(new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-                game.setScreen(new OptionsMenu(game));
-                dispose();
+                for (int i=0; i<PLAYERS; ++i) {
+                    playerNames[i] = inputField[i].getText();
+                    System.out.println(playerNames[i]);
+                }
             }
         });
     }
