@@ -19,6 +19,7 @@ import java.util.Locale;
  */
 
 public class OptionsMenu implements Screen {
+    // TODO: plik cfg?
     private final LoopGame game;
     private final Stage stage;
     private final ScreenViewport sv;
@@ -71,7 +72,7 @@ public class OptionsMenu implements Screen {
         skinBtn.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                System.out.println("Button Pressed");
+                System.out.println("Skin Button Pressed");
             }
         });
 
@@ -103,7 +104,6 @@ public class OptionsMenu implements Screen {
     @Override
     public void render(float delta) {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        //stage.act(delta);
         stage.draw();
     }
 

@@ -64,7 +64,7 @@ public class OfflinePlayerInput implements Screen {
             public void changed (ChangeEvent event, Actor actor) {
                 for (int i=0; i<PLAYERS; ++i) {
                     playerNames[i] = inputField[i].getText();
-                    System.out.println(playerNames[i]);
+                    System.out.println("Player " + i + " name: " + playerNames[i]);
                 }
             }
         });
@@ -78,7 +78,6 @@ public class OfflinePlayerInput implements Screen {
     @Override
     public void render(float delta) {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        //stage.act(delta);
         stage.draw();
     }
 
