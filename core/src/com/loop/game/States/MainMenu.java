@@ -23,14 +23,12 @@ public class MainMenu implements Screen {
     private final TextButton offlineBtn;
     private final TextButton onlineBtn;
     private final TextButton optBtn;
-    private final TextButton exitBtn;
 
     public MainMenu(final LoopGame game) {
         this.game = game;
         this.offlineBtn = new TextButton(game.loc.get("startOffline"), game.skin);
         this.onlineBtn = new TextButton(game.loc.get("startOnline"), game.skin);
         this.optBtn = new TextButton(game.loc.get("options"), game.skin);
-        this.exitBtn = new TextButton(game.loc.get("exit"), game.skin);
         this.sv = new ScreenViewport();
         this.stage = new Stage(sv);
         fillStage();
@@ -44,7 +42,6 @@ public class MainMenu implements Screen {
         vg.addActor(offlineBtn);
         vg.addActor(onlineBtn);
         vg.addActor(optBtn);
-        vg.addActor(exitBtn);
         vg.center();
         setButtonActions();
         stage.addActor(vg);
@@ -61,21 +58,14 @@ public class MainMenu implements Screen {
         onlineBtn.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                System.out.println("Button Pressed");
+                System.out.println("Online Game Button Pressed");
             }
         });
 
         optBtn.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                System.out.println("Button Pressed");
-            }
-        });
-
-        exitBtn.addListener(new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-                System.out.println("Button Pressed");
+                game.setScreen(new OptionsMenu(game));
             }
         });
     }
