@@ -16,8 +16,8 @@ public class LoopGame extends Game {
     public BitmapFont font;
     public Skin skin;
     public I18NBundle loc;
-    public static final int WIDTH = 640; // docelowo Gdx.graphics.getWidth();
-    public static final int HEIGHT = 800;// docelowo Gdx.graphics.getHeight();
+    public static final int WIDTH = 640;//Gdx.app.getGraphics().getWidth();
+    public static final int HEIGHT = 800;//Gdx.app.getGraphics().getHeight();
     public static final String TITLE = "Loop";
 
     private FileHandle langPath;

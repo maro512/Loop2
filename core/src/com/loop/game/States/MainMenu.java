@@ -28,7 +28,7 @@ public class MainMenu implements Screen {
         this.offlineBtn = new TextButton(game.loc.get("startOffline"), game.skin);
         this.onlineBtn = new TextButton(game.loc.get("startOnline"), game.skin);
         this.optBtn = new TextButton(game.loc.get("options"), game.skin);
-        this.stage = new Stage(new ScreenViewport());
+        this.stage = new Stage(new ScreenViewport(), game.batch);
         fillStage();
         Gdx.input.setInputProcessor(stage);
     }
@@ -72,7 +72,7 @@ public class MainMenu implements Screen {
 
     @Override
     public void resize(int width, int height) {
-        stage.getViewport().update(game.WIDTH, game.HEIGHT, true);
+        stage.getViewport().update(width, height, true);
     }
 
     @Override

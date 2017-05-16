@@ -35,7 +35,7 @@ public class OfflinePlayerInput implements Screen {
         for (int i=0; i<PLAYERS; ++i) {
             inputField[i] = new TextField(game.loc.get("playerPrompt") + " " + (i+1), game.skin);
         }
-        this.stage = new Stage(new ScreenViewport());
+        this.stage = new Stage(new ScreenViewport(), game.batch);
         fillStage();
         Gdx.input.setInputProcessor(stage);
     }
@@ -70,7 +70,7 @@ public class OfflinePlayerInput implements Screen {
 
     @Override
     public void resize(int width, int height) {
-        stage.getViewport().update(game.WIDTH, game.HEIGHT, true);
+        stage.getViewport().update(width, height, true);
     }
 
     @Override

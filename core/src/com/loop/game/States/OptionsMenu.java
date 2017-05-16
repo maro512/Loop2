@@ -40,7 +40,7 @@ public class OptionsMenu implements Screen {
         this.skinBtn = new TextButton(game.loc.get("skinText"), game.skin); // docelowo pobieranie z cfg
         this.langBtn = new TextButton(game.loc.get(langFlag ? "lngEnglish" : "lngPolish"), game.skin);
         this.backBtn = new TextButton(game.loc.get("back"), game.skin);
-        this.stage = new Stage(new ScreenViewport());
+        this.stage = new Stage(new ScreenViewport(), game.batch);
         fillStage();
         Gdx.input.setInputProcessor(stage);
     }
@@ -96,7 +96,7 @@ public class OptionsMenu implements Screen {
 
     @Override
     public void resize(int width, int height) {
-        stage.getViewport().update(game.WIDTH, game.HEIGHT, true);
+        stage.getViewport().update(width, height, true);
     }
 
     @Override
