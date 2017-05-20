@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.*;
+import javax.net.ssl.*;
 
 /**
  * Klasa reprezentująca połączenie z serwerem LOOP. Kontroluje także komunikację
@@ -18,10 +20,11 @@ import java.util.logging.Logger;
  * Created by Piotr on 2017-05-13
  */
 public class Client
-{  
+{
+    private final SSLSocketFactory factory;
     private String name;
     private ConnectionListener user;
-    private Socket server;
+    private SSLSocket server;
     private PrintWriter serverIn;
 
     private Socket otherPlayer;
@@ -29,11 +32,12 @@ public class Client
     private PrintWriter otherPlayerOut;
     private byte state=-1;
     
-    public Client(String name, ConnectionListener listener)
+    public Client(String name, ConnectionListener listener, SSLContext context)
     {
         this.name=name;
         user = listener;
         queue=new LinkedBlockingQueue<String>();
+        factory= context.getSocketFactory();
     }
 
     /** Uruchamia połączenie z serwerem. Komunikacja dzieje się w osobnym wątku. */
@@ -90,9 +94,11 @@ public class Client
 
     private Scanner connectToServer() throws IOException
     {
-        server=new Socket();
+        server = (SSLSocket) factory.createSocket();//SSLSocketFactory.getDefault().createSocket();
+        server.setEnabledCipherSuites(server.getSupportedCipherSuites());
         System.out.print("Connecting to server...");
         server.connect(serverAddress, serverConnectionTimeout);
+        server.startHandshake();
         System.out.println("complete!");
         serverIn = new PrintWriter(server.getOutputStream(), true);
         serverIn.println(LoopServer.CMD_LOGIN+" "+name);
@@ -307,7 +313,7 @@ public class Client
             
         } catch (IOException ex) {
         }
-        server= otherPlayer =null;
+        server=null; otherPlayer =null;
         serverIn=null;
         otherPlayerOut=null;
         state=-1;

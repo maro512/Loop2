@@ -5,6 +5,7 @@
 package com.loop.game.net;
 
 import java.awt.EventQueue;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
@@ -26,9 +27,21 @@ public class ClientTest implements ConnectionListener
      */
     public static void main(String[] args) throws IOException
     {
+        /* System.setProperty("javax.net.ssl.keyStore", "trusted.jks");// "C:\\Users\\Piotr\\Documents\\Informatyka UJ\\Loop2\\trusted.jks");
+        System.setProperty("javax.net.ssl.keyStorePassword","loop2017");
+        //System.setProperty("javax.net.ssl.trustStoreType", "jks"); // */
+
         ClientTest obj = new ClientTest();
         System.out.println("Klient: "+obj.name);
-        obj.client = new Client(obj.name,obj);
+        try
+        {
+            obj.client = new Client(obj.name,obj,
+                LoopServer.getSSLContext(new FileInputStream("trusted.jks"), new char[]{'l', 'o', 'o', 'p', '2', '0', '1', '7'}));
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            return;
+        }
         if ( args.length>0 )
             obj.client.setServerAddress(args[0]);
         obj.client.logIn();

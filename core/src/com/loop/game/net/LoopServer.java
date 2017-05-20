@@ -6,6 +6,9 @@ package com.loop.game.net;
 
 import java.io.*;
 import java.net.*;
+import javax.net.ssl.*;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.util.logging.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -18,10 +21,14 @@ public class LoopServer implements Runnable
 {
     public static void main(String args[])
     {
+        /*
+        System.setProperty("javax.net.ssl.keyStore", "trusted.jks");//"C:\\Users\\Piotr\\Documents\\Informatyka UJ\\Loop2\\trusted.jks");
+        System.setProperty("javax.net.ssl.keyStorePassword","loop2017");
+        System.setProperty("javax.net.ssl.trustStoreType", "jks"); */
         new LoopServer().run();
     }
     
-    private ServerSocket main;
+    private SSLServerSocket main;
     private final ExecutorService executor= Executors.newCachedThreadPool();;
     
     public LoopServer()
@@ -32,20 +39,25 @@ public class LoopServer implements Runnable
     @Override
     public void run()
     {
-        try {
-            main = new ServerSocket(SERVER_PORT);
+        try{SSLServerSocketFactory factory = //(SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+              getSSLContext(new FileInputStream("trusted.jks"), new char[]{'l', 'o', 'o', 'p', '2', '0', '1', '7'})
+                      .getServerSocketFactory(); //*/
+            main = (SSLServerSocket) factory.createServerSocket(SERVER_PORT);
             boolean go = true;
+            main.setNeedClientAuth(false);
+            main.setWantClientAuth(false); main.setEnableSessionCreation(true);
+            main.setEnabledCipherSuites(main.getSupportedCipherSuites());
             System.out.println(InetAddress.getLocalHost().getHostAddress());
             System.out.print("\tSerwer waits for new connection... ");
             //executor
             while(go)
             {
-                Socket incomming= main.accept();
-                System.out.println(" Connected!");
+                SSLSocket incomming= (SSLSocket) main.accept();
+                System.out.print("Connected? ");
                 executor.execute(new ClientInteraction(incomming));
             }
             main.close();
-        } catch (IOException ex)
+        } catch (Exception ex)
         {
             Logger.getLogger(LoopServer.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -61,13 +73,13 @@ public class LoopServer implements Runnable
     /** Wewnętrzna klasa reprezentująca połączenie z pojedyńczym klientem. */
     class ClientInteraction implements Runnable
     {
-        public ClientInteraction(Socket socket)
+        public ClientInteraction(SSLSocket socket)
         {
             this.socket=socket;
         }
         
         private String name;
-        private Socket socket;
+        private SSLSocket socket;
         private Scanner in; // Obsługa danych przychodzących
         private PrintWriter out; // Obsługa danych wychodzących
         private BlockingQueue<String> queue;
@@ -185,10 +197,13 @@ public class LoopServer implements Runnable
         /** Zamykanie połaczenia z klientem. */
         private void logout()
         {
-            clients.remove(name);
-            detach();
-            System.out.println("Wylogowanie "+toString());
-            queue.add(CLOSE_POINTER);
+            if (name!=null)
+            {
+                clients.remove(name);
+                detach();
+                System.out.println("Wylogowanie " + toString());
+                queue.add(CLOSE_POINTER);
+            }
             try
             {
                 socket.close(); // Zamknij połączenie
@@ -279,6 +294,8 @@ public class LoopServer implements Runnable
          */
         private boolean introduceClient() throws IOException
         {
+            socket.startHandshake();
+            System.out.println(" YEAH!");
             in = new Scanner(socket.getInputStream());
             out = new PrintWriter(socket.getOutputStream(),true);
             String hello= timeLimitedReadLine(in,loginTimeout); // Serwer czeka tylko chwilę na logowanie
@@ -345,6 +362,7 @@ public class LoopServer implements Runnable
             return task.get(milis,TimeUnit.MILLISECONDS);
         } catch (Exception e)
         {
+            e.printStackTrace();
             return null;
         }
     }
@@ -360,6 +378,22 @@ public class LoopServer implements Runnable
     public void setLoginTimeout(long timeout)
     {
         loginTimeout=timeout;
+    }
+
+    /** Tworzy "kontekst SSL", ktory pozwala generować fabryki gniazd itd.
+     * Wymaga podania źródła certyfikatu i */
+    static SSLContext getSSLContext(InputStream certSource, char[] pass) throws Exception
+    {
+        KeyStore ks = KeyStore.getInstance("JKS");
+        ks.load(certSource, pass); certSource.close();
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());//"X509");
+        kmf.init(ks, pass);
+        Arrays.fill(pass,'\0'); // Zamaż hasło.
+        TrustManagerFactory trustmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());//getInstance("X509");
+        trustmf.init(ks);
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(kmf.getKeyManagers(), trustmf.getTrustManagers(), null);
+        return sslContext;
     }
 }
 
