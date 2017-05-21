@@ -11,6 +11,8 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.net.ssl.SSLContext;
+
 /**
  * Klasa do testowania połączenia z serwerem LOOP i innymi graczami.
  * Created by Piotr on 2017-05-13
@@ -25,18 +27,23 @@ public class ClientTest implements ConnectionListener
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws IOException
+    public static void main(String[] args) throws Exception
     {
         /* System.setProperty("javax.net.ssl.keyStore", "trusted.jks");// "C:\\Users\\Piotr\\Documents\\Informatyka UJ\\Loop2\\trusted.jks");
         System.setProperty("javax.net.ssl.keyStorePassword","loop2017");
         //System.setProperty("javax.net.ssl.trustStoreType", "jks"); // */
 
+        SSLContext context= LoopServer.getSSLContext(new FileInputStream("trusted.jks"), new char[]{'l', 'o', 'o', 'p', '2', '0', '1', '7'});
+        run(context,args);
+    }
+
+    public static void run(SSLContext context,String[] args) throws IOException
+    {
         ClientTest obj = new ClientTest();
         System.out.println("Klient: "+obj.name);
         try
         {
-            obj.client = new Client(obj.name,obj,
-                LoopServer.getSSLContext(new FileInputStream("trusted.jks"), new char[]{'l', 'o', 'o', 'p', '2', '0', '1', '7'}));
+            obj.client = new Client(obj.name,obj,context);
         } catch (Exception e)
         {
             e.printStackTrace();
@@ -47,7 +54,6 @@ public class ClientTest implements ConnectionListener
         obj.client.logIn();
         System.in.read();
         if(obj.step<3) obj.nextStep();
-        //System.in.read();
     }
 
     @Override

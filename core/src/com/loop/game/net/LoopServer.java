@@ -382,7 +382,7 @@ public class LoopServer implements Runnable
 
     /** Tworzy "kontekst SSL", ktory pozwala generować fabryki gniazd itd.
      * Wymaga podania źródła certyfikatu i */
-    static SSLContext getSSLContext(InputStream certSource, char[] pass) throws Exception
+    public static SSLContext getSSLContext(InputStream certSource, char[] pass) throws Exception
     {
         KeyStore ks = KeyStore.getInstance("JKS");
         ks.load(certSource, pass); certSource.close();
