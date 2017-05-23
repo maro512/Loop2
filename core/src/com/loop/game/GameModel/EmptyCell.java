@@ -1,8 +1,9 @@
 package com.loop.game.GameModel;
 
 /**
- * Created by marek on 11.04.17.
- * Updated by Piotr on 14.04.17
+ * Klasa reprezentująca wolne pole na planszy. Udostepnia informacje o pasujacych
+ * w tym miejscu płytkach, oraz umożliwia utworzenie płytki i dowiązanie jej do grafu.
+ * Created by Piotr on 29.04.17
  */
 
 public class EmptyCell extends Cell
@@ -46,7 +47,7 @@ public class EmptyCell extends Cell
     }
 
     // Pole zdeterminowane to takie na które pasuje conajwyżej jedna płytka.
-    public boolean isDetermited()
+    public boolean isDetermined()
     {
         return countBits(knownBlack)>1 || countBits(knownWhite) >1;
     }
@@ -59,7 +60,7 @@ public class EmptyCell extends Cell
     @Override
     protected void fireAppend(int direction, Cell cell)
     {
-        if(cell.isTile())
+        if(cell.getType()>0)
         {
             Tile tile = (Tile) cell;
             if(tile.getColor(direction ^2))
@@ -73,6 +74,12 @@ public class EmptyCell extends Cell
                 knownBlack &= 15^ Cell.mask[direction]; // Skasuj ewentualny czarny
             }
         }
+    }
+
+    @Override
+    public byte getType()
+    {
+        return 0;
     }
 
     private static int countBits(byte val)
