@@ -26,12 +26,23 @@ public class Game {
         this.draw = false;
     }
 
+    public Game(Player players[]) {
+        this.board = new Board();
+        this.players = players;
+        this.rnd = new Random();
+        this.draw = false;
+    }
+
+    public Player[] getPlayers () { return players; }
+
     public void setPlayers(Player p1, Player p2) {
         players[0] = p1;
         players[1] = p2;
     }
 
     private void changePlayer() { currentPlayer ^= 1; }
+
+    public int getCurrentPlayerNumber() { return currentPlayer; }
 
     public Player pickFirstPlayer() {
         currentPlayer = rnd.nextInt(2);

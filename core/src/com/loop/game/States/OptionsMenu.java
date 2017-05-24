@@ -23,7 +23,6 @@ public class OptionsMenu implements Screen {
     private final LoopGame game;
     private final Stage stage;
     private final TextButton soundBtn;
-    private final TextButton skinBtn;
     private final TextButton langBtn;
     private final TextButton backBtn;
     private boolean soundFlag;
@@ -37,7 +36,6 @@ public class OptionsMenu implements Screen {
         this.soundFlag = true; // docelowo pobranie z cfg
         this.langFlag = true; // docelowo pobranie z cfg
         this.soundBtn = new TextButton(game.loc.get(soundFlag ? "soundOn" : "soundOff"), game.skin);
-        this.skinBtn = new TextButton(game.loc.get("skinText"), game.skin); // docelowo pobieranie z cfg
         this.langBtn = new TextButton(game.loc.get(langFlag ? "lngEnglish" : "lngPolish"), game.skin);
         this.backBtn = new TextButton(game.loc.get("back"), game.skin);
         this.stage = new Stage(new ScreenViewport(), game.batch);
@@ -50,7 +48,6 @@ public class OptionsMenu implements Screen {
         vg.setFillParent(true);
         vg.space(2);
         vg.addActor(soundBtn);
-        vg.addActor(skinBtn);
         vg.addActor(langBtn);
         vg.addActor(backBtn);
         vg.center();
@@ -64,13 +61,6 @@ public class OptionsMenu implements Screen {
             public void changed (ChangeEvent event, Actor actor) {
                 soundFlag = !soundFlag;
                 soundBtn.setText(game.loc.get(soundFlag ? "soundOn" : "soundOff"));
-            }
-        });
-
-        skinBtn.addListener(new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-                System.out.println("Skin Button Pressed");
             }
         });
 

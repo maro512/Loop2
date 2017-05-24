@@ -10,6 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.loop.game.GameModel.Tile;
 import com.loop.game.LoopGame;
 
 /**
@@ -22,6 +23,7 @@ public class MainMenu implements Screen {
     private final TextButton offlineBtn;
     private final TextButton onlineBtn;
     private final TextButton optBtn;
+    private byte menuStructure[];
 
     public MainMenu(final LoopGame game) {
         this.game = game;
@@ -29,8 +31,18 @@ public class MainMenu implements Screen {
         this.onlineBtn = new TextButton(game.loc.get("startOnline"), game.skin);
         this.optBtn = new TextButton(game.loc.get("options"), game.skin);
         this.stage = new Stage(new ScreenViewport(), game.batch);
+        this.menuStructure = new byte[6];
         fillStage();
         Gdx.input.setInputProcessor(stage);
+    }
+
+    private void buildMenuStructure() {
+        menuStructure[0] = Tile.TYPE_NS;
+        menuStructure[1] = Tile.TYPE_WE;
+        menuStructure[2] = Tile.TYPE_SE;
+        menuStructure[3] = Tile.TYPE_NE;
+        menuStructure[4] = Tile.TYPE_NW;
+        menuStructure[5] = Tile.TYPE_SW;
     }
 
     private void fillStage() {

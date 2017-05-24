@@ -66,8 +66,9 @@ public class OfflinePlayerInput implements Screen {
             public void changed (ChangeEvent event, Actor actor) {
                 for (int i=0; i<PLAYERS; ++i) {
                     players[i] = new Player(inputField[i].getText());
-                    System.out.println("Player " + i + " name: " + players[i].getName());
                 }
+
+                game.setScreen(new Play(game, players));
             }
         });
     }

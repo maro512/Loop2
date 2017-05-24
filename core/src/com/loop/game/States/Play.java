@@ -2,7 +2,9 @@ package com.loop.game.States;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -32,6 +34,9 @@ public class Play implements Screen {
     private Map<Byte, Button> buttons;
     private Label[] playersLabels;
     private int currentPlayer;
+    // private Pixmap pm;
+    private Label.LabelStyle activeStyle;
+    private Label.LabelStyle passiveStyle;
 
     int chosenX;
     int chosenY;
@@ -42,7 +47,8 @@ public class Play implements Screen {
           - listenery do buttonow
           - render planszy
           - interaktywnosc planszy
-          - wyroznienie aktualnego gracza
+          - wyroznienie aktualnego gracza - ready
+          - tla do tabel
     */
 
     public Play(final LoopGame loopGame, Player[] players) {
@@ -53,6 +59,12 @@ public class Play implements Screen {
         this.playersLabels = new Label[2];
         this.chosenX = 0;
         this.chosenY = 0;
+        this.activeStyle = new Label.LabelStyle(loopGame.font, new Color(240/255f, 204/255f, 0, 1));
+        this.passiveStyle = new Label.LabelStyle(loopGame.font, new Color(112/255f, 101/255f, 34/255f, 1));
+
+        // this.pm = new Pixmap(1, 1, Pixmap.Format.RGB888);
+        // pm.setColor(24, 24, 24, 1);
+        // pm.fill();
 
         for (int i=0; i<players.length; ++i) {
             playersLabels[i] = new Label(players[i].getName(), loopGame.skin);
@@ -79,7 +91,7 @@ public class Play implements Screen {
     private void fillStage() {
         Table table = new Table(loopGame.skin);
         table.setFillParent(true);
-        // table.setDebug(true);
+        table.setDebug(true);
         table.add(playersLabels[0]).colspan(BUTTONS_AMOUNT/2).expandX();
         table.add(playersLabels[1]).colspan(BUTTONS_AMOUNT/2).expandX();
         table.row();
@@ -93,13 +105,15 @@ public class Play implements Screen {
         updateMenu();
 
         stage.addActor(table);
+
+        highlightCurrentPlayer();
     }
 
     private void highlightCurrentPlayer () {
         int curr = game.getCurrentPlayerNumber();
 
-        playersLabels[curr].setText("!");
-        playersLabels[curr^1].setText(".");
+        playersLabels[curr].setStyle(activeStyle);
+        playersLabels[curr^1].setStyle(passiveStyle);
     }
 
     private void disableAllButtons() {

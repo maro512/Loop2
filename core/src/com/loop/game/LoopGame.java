@@ -16,7 +16,7 @@ public class LoopGame extends Game {
     public BitmapFont font;
     public Skin skin;
     public I18NBundle loc;
-    public static final int WIDTH = 640;//Gdx.app.getGraphics().getWidth();
+    public static final int WIDTH = 480;//Gdx.app.getGraphics().getWidth();
     public static final int HEIGHT = 800;//Gdx.app.getGraphics().getHeight();
     public static final String TITLE = "Loop";
 
@@ -31,7 +31,10 @@ public class LoopGame extends Game {
         this.setScreen(new MainMenu(this));
     }
 
-    public void render() { super.render(); }
+    public void render() {
+        Gdx.gl.glClearColor(48/255f, 48/255f, 48/255f, 1);
+        super.render();
+    }
 
     public void changeLang ( Locale lng ) { loc = I18NBundle.createBundle(langPath, lng); }
 
