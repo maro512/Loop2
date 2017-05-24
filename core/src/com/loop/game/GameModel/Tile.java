@@ -28,6 +28,7 @@ public class Tile extends Cell
         this.type = type;
     }
 
+    @Override
     public byte getType()
     {
         return type;
@@ -61,22 +62,16 @@ public class Tile extends Cell
         while ( ((type & mask[direction]) == 0)==color ) direction++; // Znajdź odpowiedni bit
         Cell neighbour = getNeighbour(direction);
         if (neighbour==null) throw new IllegalStateException("Tile's neighbour is null!");// Do usunięcia.
-        if (!neighbour.isTile()) // "Pierwszy" sąsiad powinien (jeśli to możliwe) być płytką
+        if (neighbour.getType()<=0) // "Pierwszy" sąsiad powinien (jeśli to możliwe) być płytką
             return getNeighbour(otherEnd(direction));
         return neighbour;
-    }
-
-    @Override
-    public boolean isTile()
-    {
-        return true;
     }
 
     // Sprawdza zgodnośc kolorów z sąsiadem. Służy wyrzucaniu wyjątków (na czas testowania).
     @Override
     protected void fireAppend(int direction, Cell cell)
     {
-        if (cell.isTile())
+        if (cell.getType()>0)
         {
             Tile other = (Tile) cell;
             if (other.getColor(direction^2)!=getColor(direction))
