@@ -1,5 +1,7 @@
 package com.loop.game.GameModel;
 
+import com.badlogic.gdx.math.Vector2;
+
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +20,7 @@ public class Game {
     private int currentPlayer; // liczba z {0, 1}, do wyboru z tablicy players
     private Random rnd;
     private boolean draw;
+    private Cell selected;
 
     public Game() {
         this.board = new Board();
@@ -31,6 +34,23 @@ public class Game {
         this.players = players;
         this.rnd = new Random();
         this.draw = false;
+    }
+
+    public Cell getSelected() {
+        return selected;
+    }
+
+    public void setSelected(Cell selected) {
+        this.selected = selected;
+    }
+
+    public Cell getCell(Vector2 pos) {
+        for (Cell cell : getBoardView()) {
+            if (cell.getX() == pos.x && cell.getY() == pos.y) {
+                return cell;
+            }
+        }
+        return null;
     }
 
     public Player[] getPlayers () { return players; }
@@ -103,9 +123,9 @@ public class Game {
         }
     }
 
-    //public Collection<Cell> getBoardView(){
-    //    return board.getCrrPosition().values();
-    //}
+    public Collection<Cell> getBoardView(){
+        return board.getCells();
+    }
 
     public Player getCrrPlayer() { return players[currentPlayer]; }
 }
