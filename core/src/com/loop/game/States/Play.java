@@ -1,13 +1,17 @@
 package com.loop.game.States;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -37,6 +41,7 @@ public class Play implements Screen {
     // private Pixmap pm;
     private Label.LabelStyle activeStyle;
     private Label.LabelStyle passiveStyle;
+    private BoardView bv;
 
     int chosenX;
     int chosenY;
@@ -61,6 +66,7 @@ public class Play implements Screen {
         this.chosenY = 0;
         this.activeStyle = new Label.LabelStyle(loopGame.font, new Color(240/255f, 204/255f, 0, 1));
         this.passiveStyle = new Label.LabelStyle(loopGame.font, new Color(112/255f, 101/255f, 34/255f, 1));
+        this.bv = new BoardView(loopGame.skin);
 
         // this.pm = new Pixmap(1, 1, Pixmap.Format.RGB888);
         // pm.setColor(24, 24, 24, 1);
@@ -90,12 +96,14 @@ public class Play implements Screen {
 
     private void fillStage() {
         Table table = new Table(loopGame.skin);
+        table.setBackground("bg_black");
+        table.setTouchable(Touchable.enabled);
         table.setFillParent(true);
         table.setDebug(true);
-        table.add(playersLabels[0]).colspan(BUTTONS_AMOUNT/2).expandX();
-        table.add(playersLabels[1]).colspan(BUTTONS_AMOUNT/2).expandX();
-        table.row();
-        table.add("GAME").colspan(BUTTONS_AMOUNT).expand();
+        table.add(playersLabels[0]).colspan((int)Math.floor(BUTTONS_AMOUNT*.5)).expandX().height(30f);
+        table.add(playersLabels[1]).colspan((int)Math.ceil(BUTTONS_AMOUNT*.5)).expandX().height(30f);
+        table.row().fillX().expandY();
+        table.add(bv).colspan(BUTTONS_AMOUNT).fill();
         table.row();
 
         for (Map.Entry<Byte,Button> entry : buttons.entrySet()) {
@@ -150,6 +158,7 @@ public class Play implements Screen {
     @Override
     public void render(float delta) {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        stage.act(delta);
         stage.draw();
     }
 

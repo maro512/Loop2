@@ -103,9 +103,9 @@ public class Game {
         }
     }
 
-    public Collection<Cell> getBoardView(){
-        return board.getCrrPosition().values();
-    }
+    //public Collection<Cell> getBoardView(){
+    //    return board.getCrrPosition().values();
+    //}
 
     public Player getCrrPlayer() { return players[currentPlayer]; }
 }
