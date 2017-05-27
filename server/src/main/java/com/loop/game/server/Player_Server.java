@@ -1,4 +1,4 @@
-package com.loop.game.Net;
+package com.loop.game.server;
 
 /**
  * Created by Kamil on 21-05-17

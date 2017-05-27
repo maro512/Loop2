@@ -1,5 +1,6 @@
-package com.loop.game.Net;
+package com.loop.game.server;
 
+import com.loop.game.Net.*;
 import java.awt.EventQueue;
 import java.io.IOException;
 import java.util.Arrays;
@@ -11,8 +12,8 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class OnlineLoopGameTest implements ConnectionListener{
-    private Client client;
     Boolean gameEnded;
+    private Client client;
     OnlineLoopGameTest(){
         client=new Client(this);
         gameEnded = null;
@@ -47,7 +48,7 @@ public class OnlineLoopGameTest implements ConnectionListener{
     public boolean processCommand(String[] command)
     {
         System.out.println("Komunikat: "+ Arrays.toString(command));
-        if (command[0].equals(LoopServer.CMD_CLEAR))
+        if (command[0].equals(Client.CMD_CLEAR))
         {
             EventQueue.invokeLater(new Runnable()
             {

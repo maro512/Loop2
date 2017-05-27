@@ -1,57 +1,52 @@
 package com.loop.game.States;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.*;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
-import com.badlogic.gdx.scenes.scene2d.ui.Button;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.*;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.loop.game.GameModel.Cell;
-import com.loop.game.GameModel.Game;
-import com.loop.game.GameModel.Player;
-import com.loop.game.GameModel.Tile;
 import com.loop.game.LoopGame;
-import com.loop.game.Net.Client;
 import com.loop.game.Widgets.BoardWidget;
 import com.loop.game.Net.*;
-
 import java.awt.EventQueue;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import com.loop.game.GameModel.Game;
+import com.loop.game.GameModel.Cell;
+import com.loop.game.GameModel.Tile;
 
 /**
  * Created by Kamil on 2017-05-25.
  */
 
 public class PlayOnline implements Screen, ConnectionListener {
+    private final int BUTTONS_AMOUNT = 6;
+    int chosenX;
+    int chosenY;
+    byte chosenType;
     private LoopGame loopGame;
     private Game game;
     private Stage stage;
-    private final int BUTTONS_AMOUNT = 6;
     private Map<Button, Byte> buttons;
     private Label[] playersLabels;
     private int currentPlayer;
     private Label.LabelStyle activeStyle;
     private Label.LabelStyle passiveStyle;
     private BoardWidget bv;
-    int chosenX;
-    int chosenY;
-    byte chosenType;
 //SERVER
     private Client client;
     private Boolean gameEnded;
+    private ClickListener buttonClick = new ClickListener(){
+        @Override
+        public void clicked(InputEvent e, float x, float y){
+            chosenType = buttons.get(e.getListenerActor());
+            makeMove();
+        }
+    };
 
     public PlayOnline(final LoopGame loopGame, String[] data) {
         this.loopGame = loopGame;
@@ -84,6 +79,7 @@ public class PlayOnline implements Screen, ConnectionListener {
         return output;
 
     }
+
     private void makeButtons () {
         for (Byte b : Tile.ALL_TYPES) {
             Button.ButtonStyle bs = new Button.ButtonStyle();
@@ -97,14 +93,6 @@ public class PlayOnline implements Screen, ConnectionListener {
             button.addListener(buttonClick);
         }
     }
-
-    private ClickListener buttonClick = new ClickListener(){
-        @Override
-        public void clicked(InputEvent e, float x, float y){
-            chosenType = buttons.get(e.getListenerActor());
-            makeMove();
-        }
-    };
 
     private void fillStage() {
         Table table = new Table(loopGame.skin);
@@ -167,7 +155,7 @@ public class PlayOnline implements Screen, ConnectionListener {
     public boolean processCommand(String[] command)
     {
         System.out.println("Komunikat: "+ Arrays.toString(command));
-        if (command[0].equals(LoopServer.CMD_CLEAR))
+        if (command[0].equals(Client.CMD_CLEAR))
         {
             EventQueue.invokeLater(new Runnable()
             {
