@@ -4,7 +4,6 @@
  */
 package com.loop.game.Net;
 
-import static com.loop.game.Net.LoopServer.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -20,18 +19,34 @@ import java.util.logging.Logger;
  */
 public class Client
 {  
+    public static final String CMD_MOVE             = "MovE";
+    public static final String CMD_LOGIN            ="loGIN";   // Logowanie
+    //public static final String CMD_REGISTER            ="NewOnE";   // Rejestracja ?
+    public static final String CMD_LOGOUT           ="loGOuT";
+    public static final String CMD_PLAY             ="pLAYnow"; // Rządanie rozpoczęcia gry online
+    public static final String CMD_LISTAVAILABLE    ="avaILabLe";
+    public static final String CMD_DATABASEQUERY    ="getDATA";
+    public static final String CMD_CLEAR            ="eNdALl"; // Gwałtowny koniec gry
+    public static final String CMD_GAMEEND          ="KonIEc"; // Oficjalny koniec gry
+    public static final String ERROR                ="erROr";  // Coś na wypadek błędu.
+    public static final String[] ERROR_COMMAND = { ERROR };
+    public static final int SERVER_PORT= 7457;
+    public static final String SERVER_ADDRESS = "localhost"; // Domyślny adres serwera.
     private String name;
     private ConnectionListener user;
     private Socket server;
     private PrintWriter serverIn;
-
     private Socket otherPlayer;
     private BlockingQueue<String> queue;
     private PrintWriter otherPlayerOut;
     private byte state=-1;
     private Boolean colour;
     private Boolean myMove;
-    
+    private InetSocketAddress serverAddress = new InetSocketAddress(SERVER_ADDRESS, SERVER_PORT);
+    /* Czasy oczekiwania na połączenie w milisekundach. */
+    private int serverConnectionTimeout = 6000;
+    private int otherPlayerConnectionTimeout = 10000;
+
     public Client(ConnectionListener listener)
     {
         name="default";
@@ -40,7 +55,7 @@ public class Client
         colour = null;
         myMove = null;
     }
-
+    
     /** Uruchamia połączenie z serwerem. Komunikacja dzieje się w osobnym wątku. */
     public void logIn(final String login,final String pass)
     {
@@ -55,20 +70,26 @@ public class Client
             }
         }).start();
     }
+    
     /** Gettery i Settery : **/
     public String getName(){
         return name;
     }
+
     public Boolean isMyMove(){
         return myMove;
     }
+
     public Boolean getColour(){
         return colour;
     }
+    
     public Boolean getGameStatus(){
         return colour==null && myMove==null;
     }
+    
     public String getOpponentName(){ return "default"; } //TODO:getting name
+
     /** Pętla komunikacji z serwerem (głównie odbiera dane) */
     private void serverReadingLoop(String login, String pass)
     {
@@ -89,7 +110,7 @@ public class Client
                 if(!dispath(command))
                     serverIn.println(ERROR);
             }
-            
+
         }catch (IOException ex)
         {
             user.connectionDown(true);
@@ -103,7 +124,7 @@ public class Client
             {
                 Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } 
+        }
     }
 
     private Scanner connectToServer(String name, String pass) throws IOException
@@ -113,11 +134,11 @@ public class Client
         server.connect(serverAddress, serverConnectionTimeout);
         System.out.println("complete!");
         serverIn = new PrintWriter(server.getOutputStream(), true);
-        serverIn.println(LoopServer.CMD_LOGIN+" "+name+"//"+pass);
+        serverIn.println(CMD_LOGIN+" "+name+"//"+pass);
         Scanner serverOut = new Scanner(server.getInputStream());
 
         System.out.print("Waiting for confirmation... "); //Może tu też jakiś szybki czas na odpowiedź?
-        if (serverOut.hasNext() && serverOut.nextLine().startsWith(LoopServer.CMD_LOGIN)) {
+        if (serverOut.hasNext() && serverOut.nextLine().startsWith(CMD_LOGIN)) {
             this.name=name;
             state= 0;
         }
@@ -184,11 +205,11 @@ public class Client
             int port= SERVER_PORT + new Random().nextInt(8)+1; // Na tym samym urządzeniu musimy mieć różne porty!
             ServerSocket awaiting = new ServerSocket(port);
             awaiting.setSoTimeout(otherPlayerConnectionTimeout);
-            
+
             System.out.println("Wysłano rządanie do serwera...");
-            if (otherPlayerName==null) serverIn.println(LoopServer.CMD_PLAY+" "+port); // Wyślij rządanie do serwera
-            else serverIn.println(LoopServer.CMD_PLAY+" "+port+" "+otherPlayerName);
-            
+            if (otherPlayerName==null) serverIn.println(CMD_PLAY+" "+port); // Wyślij rządanie do serwera
+            else serverIn.println(CMD_PLAY+" "+port+" "+otherPlayerName);
+
             System.out.print("Waiting for other player...");
             otherPlayer= awaiting.accept(); // Czekaj na odpowiedź
             System.out.print("connected!\nWaiting for response...\nYou have black Loops\n");
@@ -217,28 +238,28 @@ public class Client
     }
 
     //  Zamyka połaczenie z drugim graczem.
-    private void disconnectOther() 
+    private void disconnectOther()
     {
         if (otherPlayer==null || otherPlayer.isClosed()) return;
         try{
                 otherPlayer.close();
-        } catch (IOException ex) {            
+        } catch (IOException ex) {
         }
         otherPlayerOut=null;
         otherPlayer=null;
         //user.connectionDown(false);
     }
-    
+
     private boolean dispath(String[] args)
     {
-        if(args[0].equals(LoopServer.CMD_PLAY))
+        if(args[0].equals(CMD_PLAY))
         {
             return acceptPlayRequest(args);
         }
         else
             return user.processCommand(args);
     }
-    
+
     /** Nasłuchiwanie w pętli odpowiedzi drugiego gracza. */
     private void otherPlayerListener()
     {
@@ -310,19 +331,19 @@ public class Client
             otherPlayerOut= new PrintWriter(otherPlayer.getOutputStream(),true);
             if (state==0 )//&& user.processCommand(args))
             {
-                otherPlayerOut.println(LoopServer.CMD_PLAY); // Tu może będą ustalane kolory graczy?
+                otherPlayerOut.println(CMD_PLAY); // Tu może będą ustalane kolory graczy?
                 //otherPlayerOut.flush();
                 new Thread(new Runnable(){
                     @Override
                     public void run()
                     {
-                        otherPlayerListener(); 
+                        otherPlayerListener();
                     }
                 }).start(); // Uruchom nasłuchiwanie ruchów
             }
             else
             {
-                otherPlayerOut.println(LoopServer.CMD_CLEAR); // Odrzuć "zaproszenie"
+                otherPlayerOut.println(CMD_CLEAR); // Odrzuć "zaproszenie"
                 disconnectOther();
                 user.done(false);
             }
@@ -331,14 +352,14 @@ public class Client
         }
         return true;
     }
-    
+
     /** Kończy całą komunikację sieciową natychmiast. */
     public void close()
     {
         try {
             if (server!=null && !server.isClosed()) server.close();
             if (otherPlayer!=null && !otherPlayer.isClosed()) otherPlayer.close();
-            
+
         } catch (IOException ex) {
         }
         server= otherPlayer =null;
@@ -346,22 +367,12 @@ public class Client
         otherPlayerOut=null;
         state=-1;
     }
-    
-    public static final String[] ERROR_COMMAND = { LoopServer.ERROR };
-    public static final String CMD_MOVE     = "MovE";
-
-    public static final String SERVER_ADDRESS = "localhost"; // Domyślny adres serwera.
-    private InetSocketAddress serverAddress = new InetSocketAddress(SERVER_ADDRESS, SERVER_PORT);
 
     public void setServerAddress(String address)
     {
         if(state!= -1) throw new IllegalStateException("Connection is already open?");
         serverAddress =new InetSocketAddress(address, SERVER_PORT);
     }
-
-    /* Czasy oczekiwania na połączenie w milisekundach. */
-    private int serverConnectionTimeout = 6000;
-    private int otherPlayerConnectionTimeout = 10000;
 
     public void setServerConnectionTimeout(int timeout)
     {

@@ -16,10 +16,10 @@ import java.util.logging.Logger;
  */
 public class ClientTest implements ConnectionListener
 {
-    private Boolean doneFlag = null;
     String name = String.valueOf(new Date().hashCode()).substring(1);
     int step=0;
     Client client;
+    private Boolean doneFlag = null;
 
     public static void main(String[] args) throws IOException
     {
@@ -38,7 +38,7 @@ public class ClientTest implements ConnectionListener
     public boolean processCommand(String[] command)
     {
         System.out.println("Komunikat: "+Arrays.toString(command));
-        if (command[0].equals(LoopServer.CMD_CLEAR))
+        if (command[0].equals(Client.CMD_CLEAR))
         {
             EventQueue.invokeLater(new Runnable()
             {
