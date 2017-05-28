@@ -24,15 +24,16 @@ import java.util.Map;
  */
 
 public class BoardWidget extends Widget {
+    private final float SCALE = .25f;
     private Vector2 pos, size, camera, dragPos;
     private Rectangle bounds;
     private Pixmap pixmap;
     private Texture texture;
+    private Texture selectedCell;
     private Map<Byte, Texture> tileTextures;
     private Map<Byte, Texture> shadowedTileTextures;
     private Collection<Cell> cells;
     private int tileWidth, tileHeight;
-    private final float SCALE = .25f;
     private boolean started = false, drag = false;
     private Game game;
     private Play play;
@@ -94,6 +95,7 @@ public class BoardWidget extends Widget {
             shadowedTileTextures.put(b, new Texture("tile_" + b + "s.png"));
         }
         Texture emptyCell = new Texture("emptyCell.png");
+        selectedCell = new Texture("selection.png");
         tileTextures.put((byte)0, emptyCell);
         tileWidth = (int) (emptyCell.getWidth() * SCALE);
         tileHeight = (int) (emptyCell.getHeight() * SCALE);
@@ -118,13 +120,17 @@ public class BoardWidget extends Widget {
         ScissorStack.pushScissors(bounds);
         Cell selected = game.getSelected();
         for(Cell cell : cells) {
+            /*
             if (cell == selected) {
                 batch.setColor(1, 1, 0, parentAlpha);
             } else {
                 batch.setColor(1, 1, 1, parentAlpha);
-            }
+            }*/
             batch.draw(tileTextures.get(cell.getType()), pos.x+camera.x+dragPos.x+cell.getX()*tileWidth,
                     pos.y+camera.y+dragPos.y+cell.getY()*tileHeight, tileWidth, tileHeight);
+            if (cell==selected)
+                batch.draw(selectedCell, pos.x+camera.x+dragPos.x+cell.getX()*tileWidth,
+                           pos.y+camera.y+dragPos.y+cell.getY()*tileHeight, tileWidth, tileHeight);
         }
         batch.flush();
         ScissorStack.popScissors();
