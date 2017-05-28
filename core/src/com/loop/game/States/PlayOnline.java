@@ -43,6 +43,7 @@ public class PlayOnline implements Screen, ConnectionListener {
     private ClickListener buttonClick = new ClickListener(){
         @Override
         public void clicked(InputEvent e, float x, float y){
+            if (((Button) e.getTarget()).isDisabled()) return;
             chosenType = buttons.get(e.getListenerActor());
             makeMove();
         }

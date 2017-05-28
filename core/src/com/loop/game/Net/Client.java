@@ -31,7 +31,9 @@ public class Client
     public static final String ERROR                ="erROr";  // Coś na wypadek błędu.
     public static final String[] ERROR_COMMAND = { ERROR };
     public static final int SERVER_PORT= 7457;
+
     public static final String SERVER_ADDRESS = "localhost"; // Domyślny adres serwera.
+
     private String name;
     private ConnectionListener user;
     private Socket server;
@@ -49,13 +51,19 @@ public class Client
 
     public Client(ConnectionListener listener)
     {
-        name="default";
+        name = "default";
         user = listener;
         queue=new LinkedBlockingQueue<String>();
         colour = null;
         myMove = null;
     }
-    
+
+    public void setConnectionListener(ConnectionListener listener)
+    {
+        if(listener==null) throw new NullPointerException("Connection listener is null!");
+        user=listener;
+    }
+
     /** Uruchamia połączenie z serwerem. Komunikacja dzieje się w osobnym wątku. */
     public void logIn(final String login,final String pass)
     {
@@ -176,7 +184,7 @@ public class Client
     /** Łączy się z serwerem aby zainicjować połączenie z innym graczem. */
     public void startGame(final String otherPlayerName)
     {
-        if(!isServerConnected()) throw new IllegalStateException("Net interface not ready!");
+        if(!isServerConnected()) throw new IllegalStateException("Server connection not established!");
         if (isOtherPlayerConnected()) {
             colour = false;
             myMove = false;
@@ -318,10 +326,10 @@ public class Client
             disconnectOther();
             user.connectionDown(false);
         }
-        System.out.println("Zamknięcie wątku wychodzacego.");
+        System.out.println("Zamknięcie wątku wychodzącego.");
     }
 
-    /** Nawiązywanie połaczenia z drugim graczem. */
+    /** Nawiązywanie połączenia z drugim graczem. */
     private boolean acceptPlayRequest(String[] args)
     {
         InetSocketAddress address = new InetSocketAddress(args[1],Integer.parseInt(args[2]));

@@ -11,10 +11,14 @@ import java.util.concurrent.TimeUnit;
  * Created by Kamil on 2017-05-25.
  */
 
-public class OnlineLoopGameTest implements ConnectionListener{
+public class OnlineLoopGameTest implements ConnectionListener
+{
+
     Boolean gameEnded;
     private Client client;
-    OnlineLoopGameTest(){
+
+    OnlineLoopGameTest()
+    {
         client=new Client(this);
         gameEnded = null;
 
@@ -81,7 +85,7 @@ public class OnlineLoopGameTest implements ConnectionListener{
         }
         else
         {
-            System.out.println("\n\tNiepowodzenie operacji. Zamykam połaczenie z serwerem.");
+            System.out.println("\n\tNiepowodzenie operacji. Zamykam połączenie z serwerem.");
             client.close();
         }
     }
@@ -103,7 +107,7 @@ public class OnlineLoopGameTest implements ConnectionListener{
                     client.commitMove(x, y, type);//TODO:getX,Y&&type??
                 }
                 else{
-                    System.out.printf("Im waiting");
+                    System.out.printf("I'm waiting");
                     for(int i = 0; i<5; i++){
                         Thread.sleep(1000);
                         System.out.printf(".");

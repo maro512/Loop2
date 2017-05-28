@@ -19,9 +19,9 @@ import com.loop.game.LoopGame;
 public class OnlinePlayerInput implements Screen {
     private final LoopGame game;
     private final Stage stage;
+    private final int DATA = 2;
     private TextField[] inputField;
     private TextButton startBtn;
-    private final int DATA = 2;
 
     public OnlinePlayerInput(final LoopGame game) {
         this.game = game;
@@ -34,6 +34,7 @@ public class OnlinePlayerInput implements Screen {
         inputField[1] = new TextField("", game.skin);
         inputField[1].setMessageText("Password");
         inputField[1].setPasswordMode(true);
+        inputField[1].setPasswordCharacter('#');
 
         this.stage = new Stage(new ScreenViewport(), game.batch);
         fillStage();

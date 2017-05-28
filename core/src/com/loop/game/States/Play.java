@@ -31,10 +31,13 @@ import java.util.Map;
  */
 
 public class Play implements Screen {
+    private final int BUTTONS_AMOUNT = 6;
+    int chosenX;
+    int chosenY;
+    byte chosenType;
     private LoopGame loopGame;
     private Game game;
     private Stage stage;
-    private final int BUTTONS_AMOUNT = 6;
     private Map<Button, Byte> buttons;
     private Label[] playersLabels;
     private int currentPlayer;
@@ -42,18 +45,14 @@ public class Play implements Screen {
     private Label.LabelStyle activeStyle;
     private Label.LabelStyle passiveStyle;
     private BoardWidget bv;
-
     private ClickListener buttonClick = new ClickListener(){
         @Override
         public void clicked(InputEvent e, float x, float y){
+            if (((Button) e.getTarget()).isDisabled()) return;
             chosenType = buttons.get(e.getListenerActor());
             makeMove();
         }
     };
-
-    int chosenX;
-    int chosenY;
-    byte chosenType;
 
     /*
         TODO:

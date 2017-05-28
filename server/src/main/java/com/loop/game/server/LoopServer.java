@@ -19,22 +19,27 @@ import java.util.concurrent.*;
 //TODO: gdy serwer jest wyłączony i próbujemy łączyć się do niego 2 razy to socket nie jst zamkniety
 public class LoopServer implements Runnable
 {
-private final ExecutorService executor= Executors.newCachedThreadPool();
-ivate String
-    ate List;
+    private final ExecutorService executor= Executors.newCachedThreadPool();
+    private List<Player_Server> database;
     private ServerSocket main;
     private Map<String,ClientInteraction> clients;
-    
 
     //public static final int CLIENT_PORT= 7459;
     private long loginTimeout= 10000;
-    private int playRequestConnectionTimeout= 10000;     public LoopServer()
+    private int playRequestConnectionTimeout= 10000;
+
+    public LoopServer()
     {
         database = new LinkedList<Player_Server>();
         clients = new ConcurrentHashMap<String,ClientInteraction>();
     }
 
-timeLimitedReadLine(final Scanner in, long milis)
+    public static void main(String args[])
+    {
+        new LoopServer().run();
+    }
+
+    private String timeLimitedReadLine(final Scanner in, long milis)
     {
         String res=null;
         FutureTask<String> task = new FutureTask<String>(new Callable<String>()
@@ -54,11 +59,6 @@ timeLimitedReadLine(final Scanner in, long milis)
         {
             return null;
         }
-    }
-
-    public static void main(String args[])
-    {
-        new LoopServer().run();
     }
 
     @Override
@@ -89,23 +89,22 @@ timeLimitedReadLine(final Scanner in, long milis)
         playRequestConnectionTimeout = timeout;
     }
 
-    priv
-
     public void setLoginTimeout(long timeout)
     {
         loginTimeout=timeout;
-    }void buildTestDatabase(){
+    }
+
+    void buildTestDatabase()
+    {
         database.add(new Player_Server("a","aa"));
         database.add(new Player_Server("b", "bb"));
         database.add(new Player_Server("adam", "pass123"));
         database.add(new Player_Server("admin", "admin1"));
         database.add(new Player_Server("Projekt", "na5"));
-    }<Player_Server> database;
+    }
 
-    publ
-enum State { NULL, ASK, GAME, TERMINATE, LOCKED }
+    public enum State { NULL, ASK, GAME, TERMINATE, LOCKED }
 
-    pric
     /** Wewnętrzna klasa reprezentująca połączenie z pojedyńczym klientem. */
     class ClientInteraction implements Runnable
     {
@@ -318,6 +317,10 @@ enum State { NULL, ASK, GAME, TERMINATE, LOCKED }
             return false;
         }
 
+        /** Sprawdza prawdziwość danych logowania.
+         * Jesli operacja się nie powiedzie, w zmiennej name jest zapisywany null.
+         * @param input dane uwierzytelniające dostarczone przez uzytkownika.
+         */
         private void authenticateUser(String input)
         {
             String []data = input.trim().split("//");
