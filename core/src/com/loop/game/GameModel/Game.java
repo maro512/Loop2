@@ -45,12 +45,7 @@ public class Game {
     }
 
     public Cell getCell(Vector2 pos) {
-        for (Cell cell : getBoardView()) {
-            if (cell.getX() == pos.x && cell.getY() == pos.y) {
-                return cell;
-            }
-        }
-        return null;
+        return board.getCell((int) pos.x, (int) pos.y);
     }
 
     public Player[] getPlayers () { return players; }
@@ -58,6 +53,19 @@ public class Game {
     public void setPlayers(Player p1, Player p2) {
         players[0] = p1;
         players[1] = p2;
+    }
+
+    public List<Tile> getWinningLine()
+    {
+        if( board.isBlackWin() )
+        {
+            if (!board.isWhiteWin() || currentPlayer==0)
+                return board.getWinningLine(Board.BLACK);
+            else
+                return board.getWinningLine(Board.WHITE);
+        }
+        else if (board.isWhiteWin()) return board.getWinningLine(Board.WHITE);
+        else return null;
     }
 
     private void changePlayer() { currentPlayer ^= 1; }
@@ -69,15 +77,13 @@ public class Game {
         return players[currentPlayer];
     }
 
-    public boolean isDraw() { return draw; }
-
     /**
-     * Metoda zwraca mozliwe typy plytek, kt�re moga zostac polozone
+     * Metoda zwraca możliwe typy płytek, które moga zostać położone
      * na danym polu.
      * @param x - wspolrzedna x
      * @param y - wspolrzedna y
      * @return  - lista typow jako lista obiektow Byte,
-     *            pusta lista, gdy nie da sie postawic plytki
+     *            pusta lista, gdy nie da sie postawic płytki
      */
     public List<Byte> getPossibleMoves(int x, int y) {
         List<Byte> possibilities = new LinkedList<Byte>();
@@ -85,14 +91,12 @@ public class Game {
             EmptyCell cell = board.getAvailablePlace(x, y);
 
             if (cell != null) {
-                for (int i=0; i<Tile.ALL_TYPES.length; ++i) {
-                    if (cell.tileFits(Tile.ALL_TYPES[i])) {
-                        possibilities.add(Tile.ALL_TYPES[i]);
-                    }
+                for (byte type : Tile.ALL_TYPES) {
+                    if (cell.tileFits(type))
+                        possibilities.add(type);
                 }
             }
         }
-
         return possibilities;
     }
 
@@ -106,21 +110,19 @@ public class Game {
     }
 
     /**
-     * Zwraca zwyciezce, jesli gra jest rozstrzygnieta;
-     * jesli jest remis, ustawia zmienna draw na true i zwraca null
-     * jesli gra nie jest rozstrzygnieta, zwraca null.
+     * Zwraca zwycięzcę, zgodnie z założeniem, że jeśli mamy dwie linie
+     * wygrywające, wygrywa gracz, który ostatni miał ruch.
      */
     public Player whoWon() {
-        if (board.isWhiteWin() && board.isBlackWin()) {
-            draw = true;
-            return null;
-        } else if (board.isWhiteWin()) {
-            return players[WHITE];
-        } else if (board.isBlackWin()) {
-            return players[BLACK];
-        } else {
-            return null;
+        if( board.isBlackWin() )
+        {
+            if (!board.isWhiteWin() || currentPlayer==0)
+                return players[BLACK];
+            else
+                return players[WHITE];
         }
+        else if (board.isWhiteWin()) return players[WHITE];
+        else return null;
     }
 
     public Collection<Cell> getBoardView(){
@@ -128,4 +130,12 @@ public class Game {
     }
 
     public Player getCrrPlayer() { return players[currentPlayer]; }
+
+    public boolean isTerminatd() { return board.isBlackWin() || board.isWhiteWin(); }
+
+    /* Współrzędne skrajne planszy. */
+    public float getMinX() { return board.getMinX()+1.5f; }
+    public float getMinY() { return board.getMinY()+1.5f; }
+    public float getMaxX() { return board.getMaxX()-.5f; }
+    public float getMaxY() { return board.getMaxY()-.5f; }
 }

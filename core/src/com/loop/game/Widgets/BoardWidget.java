@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Widget;
 import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.loop.game.GameModel.Cell;
+import com.loop.game.GameModel.EmptyCell;
 import com.loop.game.GameModel.Game;
 import com.loop.game.GameModel.Tile;
 import com.loop.game.States.Play;
@@ -47,19 +48,23 @@ public class BoardWidget extends Widget {
             if(game.getSelected() != null) {
                 game.setSelected(null);
                 play.disableAllButtons();
-                return false;
+                //return false;
             }
             Vector2 pos = new Vector2((int)Math.floor((x-camera.x)/tileWidth),
                     (int)Math.floor((y-camera.y)/tileHeight));
             Cell hovered = game.getCell(pos);
-            if(hovered != null && hovered.getType() == 0) {
-                game.setSelected(hovered);
-                play.updateMenu(hovered);
-            } else {
-                drag = true;
-                dragStart = new Vector2(x, y);
+            if(hovered != null && hovered.getType() == 0)
+            {
+                if (!((EmptyCell) hovered).isDead())
+                {
+                    game.setSelected(hovered);
+                    play.updateMenu(hovered);
+                    return false;
+                }
             }
-            return drag;
+            drag = true;
+            dragStart = new Vector2(x, y);
+            return true;
         }
 
         @Override
@@ -67,6 +72,18 @@ public class BoardWidget extends Widget {
         {
             dragPos.x = x - dragStart.x;
             dragPos.y = y - dragStart.y;
+
+            float cx = (camera.x+ dragPos.x)/tileWidth;
+            float cy = (camera.y+ dragPos.y)/tileHeight;
+
+            if (cx+game.getMaxX()  < 0)
+                dragPos.x = -game.getMaxX()*tileWidth  -camera.x;
+            if (cy+game.getMaxY() < 0)
+                dragPos.y = -game.getMaxY()*tileHeight -camera.y;
+            if (cx+game.getMinX() > getWidth()/tileWidth  )
+                dragPos.x = getWidth() - game.getMinX()*tileWidth  -camera.x;
+            if (cy+game.getMinY() > getHeight()/tileHeight)
+                dragPos.y = getHeight()- game.getMinY()*tileHeight -camera.y;
         }
 
         @Override
