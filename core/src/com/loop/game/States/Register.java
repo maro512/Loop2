@@ -8,86 +8,80 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.loop.game.GameModel.Player;
 import com.loop.game.LoopGame;
-
-import java.util.Locale;
 
 /**
  * Created by tobi on 4/28/17.
  */
 
-public class OptionsMenu implements Screen {
-    // TODO: plik cfg?
+public class Register implements Screen {
     private final LoopGame game;
     private final Stage stage;
-    private final TextButton soundBtn;
-    private final TextButton langBtn;
-    private final TextButton backBtn;
-    private boolean soundFlag;
+    private TextField [] inputField;
+    private TextButton registerBtn;
+    private TextButton backBtn;
+    private final int TEXT_FIELDS = 3;
 
-    // zmienne temp, do testow
-        private boolean langFlag; // 1 - ang, 0 - polski
-    // koniec temp
-
-    public OptionsMenu(final LoopGame game) {
+    public Register(final LoopGame game) {
         this.game = game;
-        this.soundFlag = true; // docelowo pobranie z cfg
-        this.langFlag = true; // docelowo pobranie z cfg
-        this.soundBtn = new TextButton(game.loc.get(soundFlag ? "soundOn" : "soundOff"), game.skin);
-        this.langBtn = new TextButton(game.loc.get(langFlag ? "lngEnglish" : "lngPolish"), game.skin);
+        inputField = new TextField [TEXT_FIELDS];
+        this.registerBtn = new TextButton(game.loc.get("makeRegister"), game.skin);
         this.backBtn = new TextButton(game.loc.get("back"), game.skin);
+
+        for (int i=0; i<TEXT_FIELDS; ++i) {
+            inputField[i] = new TextField("", game.skin);
+        }
+
+        inputField[0].setMessageText(game.loc.get("username"));
+
+        for (int i=1; i<TEXT_FIELDS; ++i) {
+            inputField[i].setMessageText(game.loc.get("password"));
+            inputField[i].setPasswordCharacter('*');
+            inputField[i].setPasswordMode(true);
+        }
+
         this.stage = new Stage(new ScreenViewport(), game.batch);
         fillStage();
         Gdx.input.setInputProcessor(stage);
+        Gdx.input.setCatchBackKey(true);
     }
 
     private void fillStage() {
         VerticalGroup vg = new VerticalGroup();
         vg.setFillParent(true);
         vg.space(2);
-        vg.addActor(soundBtn);
-        vg.addActor(langBtn);
-        vg.addActor(backBtn);
         vg.center();
+
+        for (int i=0; i<TEXT_FIELDS; ++i) {
+            vg.addActor(inputField[i]);
+        }
+
+        vg.addActor(registerBtn);
+        vg.addActor(backBtn);
+
         setButtonActions();
         stage.addActor(vg);
     }
 
     private void setButtonActions() {
-        soundBtn.addListener(new ChangeListener() {
+        registerBtn.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-            soundFlag = !soundFlag;
-            soundBtn.setText(game.loc.get(soundFlag ? "soundOn" : "soundOff"));
-            }
-        });
-
-        langBtn.addListener(new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-            langFlag = !langFlag;
-            game.changeLang(langFlag ? new Locale("en") : new Locale("pl"));
-            updateLabels();
+                // TODO
             }
         });
 
         backBtn.addListener(new ChangeListener() {
             @Override
-            public void changed (ChangeEvent event, Actor actor) {
-            // TODO: zapis opcji
-
-            back();
+            public void changed(ChangeEvent event, Actor actor) {
+                back();
             }
         });
-    }
-
-    private void updateLabels () {
-        this.soundBtn.setText(game.loc.get(soundFlag ? "soundOn" : "soundOff"));
-        this.langBtn.setText(game.loc.get(langFlag ? "lngEnglish" : "lngPolish"));
-        this.backBtn.setText(game.loc.get("back"));
     }
 
     @Override
@@ -107,7 +101,13 @@ public class OptionsMenu implements Screen {
 
     @Override
     public void dispose() {
+        hideKeyboard();
         stage.dispose();
+    }
+
+    private void hideKeyboard()
+    {
+        inputField[0].getOnscreenKeyboard().show(false);
     }
 
     @Override

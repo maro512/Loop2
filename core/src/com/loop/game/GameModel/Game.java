@@ -20,7 +20,8 @@ public class Game {
     private int currentPlayer; // liczba z {0, 1}, do wyboru z tablicy players
     private Random rnd;
     private boolean draw;
-    private Cell selected;
+    private EmptyCell selected;
+    private boolean terminated;
 
     public Game() {
         this.board = new Board();
@@ -41,7 +42,7 @@ public class Game {
     }
 
     public void setSelected(Cell selected) {
-        this.selected = selected;
+        this.selected = (EmptyCell) selected;
     }
 
     public Cell getCell(Vector2 pos) {
@@ -131,7 +132,24 @@ public class Game {
 
     public Player getCrrPlayer() { return players[currentPlayer]; }
 
-    public boolean isTerminatd() { return board.isBlackWin() || board.isWhiteWin(); }
+    private boolean checkEnd() {
+        if (board.isBlackWin() || board.isWhiteWin()) {
+            terminated = true;
+        }
+
+        return terminated;
+    }
+
+    public void makeMove(byte type)
+    {
+        board.setTile(selected, type);
+        if (!checkEnd())
+        {
+            changePlayer();
+        }
+    }
+
+    public boolean isTerminated() { return terminated; }
 
     /* Współrzędne skrajne planszy. */
     public float getMinX() { return board.getMinX()+1.5f; }
