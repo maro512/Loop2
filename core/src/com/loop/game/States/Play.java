@@ -12,8 +12,10 @@ import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
+import com.badlogic.gdx.utils.ByteArray;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.loop.game.GameModel.Cell;
 import com.loop.game.GameModel.Game;
@@ -37,30 +39,20 @@ public class Play implements Screen {
     private final int BUTTONS_AMOUNT = 6;
     private Map<Button, Byte> buttons;
     private Label[] playersLabels;
-    private int currentPlayer;
-    // private Pixmap pm;
     private Label.LabelStyle activeStyle;
     private Label.LabelStyle passiveStyle;
     private BoardWidget bv;
+    private Table table;
 
     private ClickListener buttonClick = new ClickListener(){
         @Override
         public void clicked(InputEvent e, float x, float y){
-            chosenType = buttons.get(e.getListenerActor());
-            makeMove();
+            makeMove(buttons.get(e.getListenerActor()));
         }
     };
 
-    int chosenX;
-    int chosenY;
-    byte chosenType;
-
     /*
         TODO:
-          - listenery do buttonow
-          - render planszy
-          - interaktywnosc planszy
-          - wyroznienie aktualnego gracza - ready
           - tla do tabel
     */
 
@@ -70,15 +62,10 @@ public class Play implements Screen {
         this.stage = new Stage(new ScreenViewport(), loopGame.batch);
         this.buttons = new HashMap<Button, Byte>();
         this.playersLabels = new Label[2];
-        this.chosenX = 0;
-        this.chosenY = 0;
         this.activeStyle = new Label.LabelStyle(loopGame.font, new Color(240/255f, 204/255f, 0, 1));
         this.passiveStyle = new Label.LabelStyle(loopGame.font, new Color(112/255f, 101/255f, 34/255f, 1));
         this.bv = new BoardWidget(loopGame.skin, game, this);
-
-        // this.pm = new Pixmap(1, 1, Pixmap.Format.RGB888);
-        // pm.setColor(24, 24, 24, 1);
-        // pm.fill();
+        game.pickFirstPlayer();
 
         for (int i=0; i<players.length; ++i) {
             playersLabels[i] = new Label(players[i].getName(), loopGame.skin);
@@ -103,11 +90,11 @@ public class Play implements Screen {
     }
 
     private void fillStage() {
-        Table table = new Table(loopGame.skin);
+        table = new Table(loopGame.skin);
         table.setBackground("bg_black");
         table.setTouchable(Touchable.enabled);
         table.setFillParent(true);
-        // table.setDebug(true);
+        table.setDebug(true);
         table.add(playersLabels[0]).colspan((int)Math.floor(BUTTONS_AMOUNT*.5)).expandX().height(30f);
         table.add(playersLabels[1]).colspan((int)Math.ceil(BUTTONS_AMOUNT*.5)).expandX().height(30f);
         table.row().fillX().expandY();
@@ -126,7 +113,7 @@ public class Play implements Screen {
     }
 
     private void highlightCurrentPlayer () {
-        int curr = game.getCurrentPlayerNumber();
+        int curr = game.getCrrPlayer().getNumber();
 
         playersLabels[curr].setStyle(activeStyle);
         playersLabels[curr^1].setStyle(passiveStyle);
@@ -135,28 +122,55 @@ public class Play implements Screen {
     public void disableAllButtons() {
         for (Map.Entry<Button, Byte> entry : buttons.entrySet()) {
             entry.getKey().setDisabled(true);
+            entry.getKey().setTouchable(Touchable.disabled);
         }
     }
 
-    private void makeMove () {
-        chosenX = game.getSelected().getX();
-        chosenY = game.getSelected().getY();
-        game.makeMove(chosenX, chosenY, chosenType);
-        highlightCurrentPlayer();
-        game.setSelected(null);
-        disableAllButtons();
+    private void makeMove (byte type) {
+        game.makeMove(type);
+
+        if (!game.isTerminated()) {
+            highlightCurrentPlayer();
+            game.setSelected(null);
+            disableAllButtons();
+        } else {
+            showWinScreen();
+        }
     }
 
-    public void updateMenu (Cell selected) {
+    public void updateMenu(Cell selected) {
         List<Byte> possibleMoves = game.getPossibleMoves(selected.getX(), selected.getY());
 
         for (Map.Entry<Button, Byte> entry : buttons.entrySet()) {
             if (possibleMoves.contains(entry.getValue())) {
                 entry.getKey().setDisabled(false);
+                entry.getKey().setTouchable(Touchable.enabled);
             } else {
                 entry.getKey().setDisabled(true);
+                entry.getKey().setTouchable(Touchable.disabled);
             }
         }
+    }
+
+    private void showWinScreen() {
+        table.clearChildren();
+        table.add(new Label(game.getCrrPlayer().getName() + " "
+                            + loopGame.loc.get("won"), loopGame.skin)).expandX();
+        table.row().fillX().expandY();
+        table.add(bv).fill();
+        table.row().expandX();
+
+        ClickListener backListener = new ClickListener(){
+            @Override
+            public void clicked(InputEvent e, float x, float y){
+           loopGame.setScreen(new MainMenu(loopGame));
+           dispose();
+            }
+        };
+
+        TextButton backButton = new TextButton(loopGame.loc.get("back"), loopGame.skin);
+        backButton.addListener(backListener);
+        table.add(backButton);
     }
 
 

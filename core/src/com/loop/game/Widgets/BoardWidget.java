@@ -15,8 +15,10 @@ import com.loop.game.GameModel.Game;
 import com.loop.game.GameModel.Tile;
 import com.loop.game.States.Play;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -79,9 +81,6 @@ public class BoardWidget extends Widget {
         }
     };
 
-    private float amountWidth = 5;
-    private float amountHeight = 8;
-
     public BoardWidget(Skin skin, Game game, Play play) {
         tileTextures = new HashMap<Byte, Texture>();
         shadowedTileTextures= new HashMap<Byte, Texture>();
@@ -99,7 +98,7 @@ public class BoardWidget extends Widget {
         tileHeight = (int) (emptyCell.getHeight() * SCALE);
         addListener(listener);
         pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pixmap.setColor(skin.getColor("black"));
+        pixmap.setColor(skin.getColor("boardBackground"));
         pixmap.fill();
         texture = new Texture(pixmap);
         camera = new Vector2(0, 0);
@@ -116,15 +115,43 @@ public class BoardWidget extends Widget {
         super.draw(batch, parentAlpha);
         batch.draw(texture, pos.x, pos.y, size.x, size.y);
         ScissorStack.pushScissors(bounds);
-        Cell selected = game.getSelected();
-        for(Cell cell : cells) {
-            if (cell == selected) {
-                batch.setColor(1, 1, 0, parentAlpha);
-            } else {
-                batch.setColor(1, 1, 1, parentAlpha);
+
+
+        if (!game.isTerminated()) {
+            Cell selected = game.getSelected();
+            for (Cell cell : cells) {
+                if (cell == selected) {
+                    batch.setColor(1, 1, 0, parentAlpha);
+                } else {
+                    batch.setColor(1, 1, 1, parentAlpha);
+                }
+                batch.draw(tileTextures.get(cell.getType()), pos.x + camera.x + dragPos.x + cell.getX() * tileWidth,
+                        pos.y + camera.y + dragPos.y + cell.getY() * tileHeight, tileWidth, tileHeight);
             }
-            batch.draw(tileTextures.get(cell.getType()), pos.x+camera.x+dragPos.x+cell.getX()*tileWidth,
-                    pos.y+camera.y+dragPos.y+cell.getY()*tileHeight, tileWidth, tileHeight);
+        } else {
+            Collection<? extends Cell> winningLine = game.getWinningLine();
+
+            for (Cell cell : cells) {
+                if (winningLine.contains(cell)) {
+                    batch.setColor(1, 1, 1, parentAlpha);
+                } else {
+                    batch.setColor(0.5f, 0.5f, 0.5f, parentAlpha);
+                }
+                batch.draw(tileTextures.get(cell.getType()), pos.x + camera.x + dragPos.x + cell.getX() * tileWidth,
+                        pos.y + camera.y + dragPos.y + cell.getY() * tileHeight, tileWidth, tileHeight);
+            }
+
+            /*
+            for (Cell cell : cells) {
+                if (!winningLine.contains(cell)) {
+                    batch.setColor(1, 1, 1, parentAlpha);
+                } else {
+                    batch.setColor(.5f, .5f, .5f, parentAlpha);
+                }
+                batch.draw(tileTextures.get(cell.getType()), pos.x + camera.x + dragPos.x + cell.getX() * tileWidth,
+                        pos.y + camera.y + dragPos.y + cell.getY() * tileHeight, tileWidth, tileHeight);
+            }
+            */
         }
         batch.flush();
         ScissorStack.popScissors();
@@ -141,7 +168,5 @@ public class BoardWidget extends Widget {
             camera.y = getHeight() / 2 - tileHeight / 2;
             started = true;
         }
-        //region.setRegion(pos.x, pos.y, emptyCell.getWidth()*size.x*amountWidth/480,
-        //        emptyCell.getHeight()*size.y*amountHeight/628);
     }
 }

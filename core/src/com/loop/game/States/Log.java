@@ -8,37 +8,39 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.loop.game.LoopGame;
 
-import java.util.Locale;
-
 /**
  * Created by tobi on 4/28/17.
  */
 
-public class OptionsMenu implements Screen {
-    // TODO: plik cfg?
+public class Log implements Screen {
     private final LoopGame game;
     private final Stage stage;
-    private final TextButton soundBtn;
-    private final TextButton langBtn;
-    private final TextButton backBtn;
-    private boolean soundFlag;
+    private TextField [] inputField;
+    private TextButton logBtn;
+    private TextButton backBtn;
+    private final int TEXT_FIELDS = 2;
 
-    // zmienne temp, do testow
-        private boolean langFlag; // 1 - ang, 0 - polski
-    // koniec temp
-
-    public OptionsMenu(final LoopGame game) {
+    public Log(final LoopGame game) {
         this.game = game;
-        this.soundFlag = true; // docelowo pobranie z cfg
-        this.langFlag = true; // docelowo pobranie z cfg
-        this.soundBtn = new TextButton(game.loc.get(soundFlag ? "soundOn" : "soundOff"), game.skin);
-        this.langBtn = new TextButton(game.loc.get(langFlag ? "lngEnglish" : "lngPolish"), game.skin);
+        inputField = new TextField [TEXT_FIELDS];
+        this.logBtn = new TextButton(game.loc.get("login"), game.skin);
         this.backBtn = new TextButton(game.loc.get("back"), game.skin);
+
+        for (int i=0; i<TEXT_FIELDS; ++i) {
+            inputField[i] = new TextField("", game.skin);
+        }
+
+        inputField[0].setMessageText(game.loc.get("username"));
+        inputField[1].setMessageText(game.loc.get("password"));
+        inputField[1].setPasswordCharacter('*');
+        inputField[1].setPasswordMode(true);
+
         this.stage = new Stage(new ScreenViewport(), game.batch);
         fillStage();
         Gdx.input.setInputProcessor(stage);
@@ -48,46 +50,33 @@ public class OptionsMenu implements Screen {
         VerticalGroup vg = new VerticalGroup();
         vg.setFillParent(true);
         vg.space(2);
-        vg.addActor(soundBtn);
-        vg.addActor(langBtn);
-        vg.addActor(backBtn);
         vg.center();
+
+        for (int i=0; i<TEXT_FIELDS; ++i) {
+            vg.addActor(inputField[i]);
+        }
+
+        vg.addActor(logBtn);
+        vg.addActor(backBtn);
+
         setButtonActions();
         stage.addActor(vg);
     }
 
     private void setButtonActions() {
-        soundBtn.addListener(new ChangeListener() {
+        logBtn.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-            soundFlag = !soundFlag;
-            soundBtn.setText(game.loc.get(soundFlag ? "soundOn" : "soundOff"));
-            }
-        });
-
-        langBtn.addListener(new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-            langFlag = !langFlag;
-            game.changeLang(langFlag ? new Locale("en") : new Locale("pl"));
-            updateLabels();
+                // TODO
             }
         });
 
         backBtn.addListener(new ChangeListener() {
             @Override
-            public void changed (ChangeEvent event, Actor actor) {
-            // TODO: zapis opcji
-
+            public void changed(ChangeEvent event, Actor actor) {
             back();
             }
         });
-    }
-
-    private void updateLabels () {
-        this.soundBtn.setText(game.loc.get(soundFlag ? "soundOn" : "soundOff"));
-        this.langBtn.setText(game.loc.get(langFlag ? "lngEnglish" : "lngPolish"));
-        this.backBtn.setText(game.loc.get("back"));
     }
 
     @Override
@@ -95,7 +84,6 @@ public class OptionsMenu implements Screen {
         stage.getViewport().update(width, height, true);
     }
 
-    @Override
     public void render(float delta) {
         if (Gdx.input.isKeyPressed(Input.Keys.BACK)){
             back();
