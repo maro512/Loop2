@@ -73,7 +73,7 @@ public class Play implements Screen {
         makeButtons();
         fillStage();
         Gdx.input.setInputProcessor(stage);
-        Gdx.input.setCatchBackKey(true);
+        //Gdx.input.setCatchBackKey(true);
     }
 
     private void makeButtons () {
@@ -173,8 +173,6 @@ public class Play implements Screen {
         backButton.addListener(backListener);
         table.add(backButton);
     }
-
-
 
     @Override
     public void resize(int width, int height) {

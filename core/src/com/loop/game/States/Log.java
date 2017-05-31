@@ -7,9 +7,10 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
+import static com.loop.game.States.MainMenu.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.loop.game.LoopGame;
@@ -46,14 +47,26 @@ public class Log implements Screen {
     }
 
     private void fillStage() {
-        VerticalGroup vg = new VerticalGroup();
+        /* VerticalGroup vg = new VerticalGroup();
         vg.setFillParent(true);
         vg.space(2);
         vg.center();
         vg.addActor(userField);
+        userField.setWidth(vg.getWidth()*.7f);
         vg.addActor(passField);
+        passField.setWidth(vg.getWidth()*.7f);
         vg.addActor(logBtn);
-        vg.addActor(backBtn);
+        vg.addActor(backBtn); */
+        Table vg = new Table();
+        vg.setFillParent(true);
+        //vg.padTop(10*MainMenu.BUTTON_PAD);
+        //vg.center();
+        vg.row().fillY();
+        vg.row(); vg.add(userField).padBottom(BUTTON_PAD).width(stage.getWidth()*.7f);
+        vg.row(); vg.add(passField).padBottom(BUTTON_PAD).width(stage.getWidth()*.7f);
+        vg.row(); vg.add(logBtn).padBottom(BUTTON_PAD).width(stage.getWidth()*.4f);
+        vg.row(); vg.add(backBtn).padBottom(BUTTON_PAD).width(stage.getWidth()*.4f);
+        vg.row().fillY();
         setButtonActions();
         stage.addActor(vg);
     }

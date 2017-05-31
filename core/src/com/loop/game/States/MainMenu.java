@@ -31,7 +31,7 @@ public class MainMenu implements Screen {
     private final TextButton registerBtn;
     private final TextButton logBtn;
     private final TextButton optBtn;
-    private final float BUTTON_PAD = 5;
+    public static final float BUTTON_PAD = 5;
 
     public MainMenu(final LoopGame game) {
         this.logo = new Image(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("logo-loop.png"))))
@@ -53,12 +53,12 @@ public class MainMenu implements Screen {
         table.setFillParent(true);
         table.padTop(10*BUTTON_PAD);
         table.add(logo);
-        table.row(); table.add(offlineBtn).padBottom(BUTTON_PAD);
-        table.row(); table.add(onlineBtn).padBottom(BUTTON_PAD);
-        table.row(); table.add(registerBtn).padBottom(BUTTON_PAD);
-        table.row(); table.add(logBtn).padBottom(BUTTON_PAD);
-        table.row(); table.add(optBtn).padBottom(BUTTON_PAD);
-        table.row().fillY();
+        table.row(); table.add(offlineBtn).padBottom(BUTTON_PAD).width(stage.getWidth()*.7f);
+        table.row(); table.add(onlineBtn).padBottom(BUTTON_PAD).width(stage.getWidth()*.7f);
+        table.row(); table.add(registerBtn).padBottom(BUTTON_PAD).width(stage.getWidth()*.5f);
+        table.row(); table.add(logBtn).padBottom(BUTTON_PAD).width(stage.getWidth()*.5f);
+        table.row(); table.add(optBtn).padBottom(10*BUTTON_PAD).width(stage.getWidth()*.5f);
+        table.row(); table.add().fillY();
         setButtonActions();
         stage.addActor(table);
     }

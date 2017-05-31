@@ -7,6 +7,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
@@ -14,6 +15,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.loop.game.GameModel.Player;
 import com.loop.game.LoopGame;
+
+import static com.loop.game.States.MainMenu.BUTTON_PAD;
 
 /**
  * Created by tobi on 4/28/17.
@@ -51,19 +54,19 @@ public class Register implements Screen {
         Gdx.input.setCatchBackKey(true);
     }
 
-    private void fillStage() {
-        VerticalGroup vg = new VerticalGroup();
+    private void fillStage()
+    {
+        Table vg = new Table();
         vg.setFillParent(true);
-        vg.space(2);
-        vg.center();
-
+        //vg.space(2);
+        //vg.center();
         for (int i=0; i<TEXT_FIELDS; ++i) {
-            vg.addActor(inputField[i]);
+            vg.row(); vg.add(inputField[i]).padBottom(BUTTON_PAD).width(stage.getWidth()*.7f);
         }
 
-        vg.addActor(registerBtn);
-        vg.addActor(backBtn);
-
+        vg.row(); vg.add(registerBtn).padBottom(BUTTON_PAD).width(stage.getWidth()*.5f);
+        vg.row(); vg.add(backBtn).padBottom(BUTTON_PAD);
+        vg.row().fillY();
         setButtonActions();
         stage.addActor(vg);
     }
