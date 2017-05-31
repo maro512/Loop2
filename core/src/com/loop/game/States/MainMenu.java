@@ -88,7 +88,7 @@ public class MainMenu implements Screen {
         logBtn.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                game.setScreen(new Register(game));
+                game.setScreen(new Log(game));
                 dispose();
             }
         });

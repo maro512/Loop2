@@ -39,7 +39,14 @@ public class OfflinePlayerInput implements Screen {
             inputField[i].setMessageText(game.loc.get("playerPrompt") + " " + (i+1));
         }
 
-        this.stage = new Stage(new ScreenViewport(), game.batch);
+        this.stage = new Stage(new ScreenViewport(), game.batch) {
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                super.unfocusAll();
+                Gdx.input.setOnscreenKeyboardVisible(false);
+                return super.touchDown(screenX, screenY, pointer, button);
+            }
+        };
         fillStage();
         Gdx.input.setInputProcessor(stage);
     }

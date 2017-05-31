@@ -45,7 +45,14 @@ public class Register implements Screen {
             inputField[i].setPasswordMode(true);
         }
 
-        this.stage = new Stage(new ScreenViewport(), game.batch);
+        this.stage = new Stage(new ScreenViewport(), game.batch) {
+            @Override
+            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                super.unfocusAll();
+                Gdx.input.setOnscreenKeyboardVisible(false);
+                return super.touchDown(screenX, screenY, pointer, button);
+            }
+        };
         fillStage();
         Gdx.input.setInputProcessor(stage);
     }
@@ -90,6 +97,7 @@ public class Register implements Screen {
 
     @Override
     public void render(float delta) {
+        Gdx.input.setCatchBackKey(true);
         if (Gdx.input.isKeyPressed(Input.Keys.BACK)){
             back();
         }
