@@ -2,6 +2,7 @@ package com.loop.game.States;
 
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -79,13 +80,26 @@ public class OfflinePlayerInput implements Screen {
     }
 
     @Override
-    public void render(float delta) {
+    public void render(float delta)
+    {
+        if (Gdx.input.isKeyPressed(Input.Keys.BACK)){
+            back();
+        }
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.draw();
     }
 
+    private void back()
+    {
+        game.setScreen(new MainMenu(game));
+        dispose();
+    }
+
     @Override
-    public void dispose() {
+    public void dispose()
+    {
+        for(TextField field : inputField)
+            field.getOnscreenKeyboard().show(false);
         stage.dispose();
     }
 
