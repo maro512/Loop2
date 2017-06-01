@@ -16,7 +16,6 @@ import static java.nio.charset.Charset.*;
 /**
  * Created by Piotr on 2017-05-29.
  */
-
 public class DataBase
 {
     private static final String url =
@@ -120,7 +119,40 @@ public class DataBase
 
     //________________________________________________________________
 
-    //public
+    public boolean commitGameResult(String[] playerName, int winner) throws SQLException
+    {
+        boolean ok = false;
+        if (playerName.length!=2 || (winner & 1) != winner) throw new IllegalArgumentException();
+        if (playerName[0].equals(playerName[1])) throw new IllegalArgumentException();
+        Connection dbc= connect();
+        System.out.println("Connection to data base: successfull!");
+        PreparedStatement stmt = null;
+        try {
+            dbc.setAutoCommit(false);
+            dbc.setSavepoint();
+            stmt = dbc.prepareStatement("UPDATE Ranking SET TotalGames=TotalGames+1, Points=Points+? WHERE Name=?");
+            for(int i=0; i<2; i++)
+            {
+                stmt.setInt(1, i==winner ? 1 : 0);
+                stmt.setString(2, playerName[i]);
+                try {
+                    ok = stmt.executeUpdate()==1;
+                } catch (SQLServerException ex) {
+                    ok = false;
+                }
+                if (!ok) {
+                    dbc.rollback(); // Odwołaj oprzednie zmiany w bazie!
+                    break;
+                }
+            }
+            dbc.commit();
+        } finally // Pozamykaj wszystko
+        {
+            if (stmt!=null) try { stmt.close(); } catch (SQLException e) {}
+            try { dbc.close(); } catch (SQLException e) {}
+        }
+        return ok; // Zwróć, czy się udało
+    }
 
     /** Zapisuje hasło w bazie, w nieczytelnej formie. */
     private String getHash(char[] pass)
@@ -154,6 +186,9 @@ public class DataBase
         System.out.println("Logowanie1... "+ db.checkUser(user,pass));
         System.out.println("Logowanie2... "+ db.checkUser(user,pass2));
         System.out.println("Powrót hasła... "+ db.checkUser(user,pass));
+        System.out.println("Gra1... "+ db.commitGameResult(new String[]{"Piotr","testuser"},0));
+        System.out.println("Gra2... "+ db.commitGameResult(new String[]{"JFGauss","testuser"},1));
+        System.out.println("Gra3... "+ db.commitGameResult(new String[]{"testuser","Newton"},1));
     }
 
     public void askForRating(int from, int count)
