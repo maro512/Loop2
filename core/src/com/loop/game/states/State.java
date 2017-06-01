@@ -1,4 +1,4 @@
-package com.loop.game.states;
+package com.loop.game.States;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;

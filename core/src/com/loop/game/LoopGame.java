@@ -5,8 +5,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.loop.game.states.GameStateManager;
-import com.loop.game.states.MenuState;
+import com.loop.game.States.GameStateManager;
+import com.loop.game.States.MenuState;
 
 public class LoopGame extends ApplicationAdapter {
 	public static final int WIDTH = 480;

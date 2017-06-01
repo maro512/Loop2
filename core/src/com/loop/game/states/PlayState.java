@@ -1,4 +1,4 @@
-package com.loop.game.states;
+package com.loop.game.States;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
@@ -261,6 +261,7 @@ public class PlayState extends State {
     }
 
     private void renderCell(SpriteBatch sb, Cell cell, boolean isTerminated) {
+        if (cell.getType()<0) return;
         Vector3 position = new Vector3();
         position.set(cell.getX() * cellSize + BOARD_MARGIN + delta.x, cell.getY() * cellSize + BOTTOM_MARGIN + delta.y, 0);
 

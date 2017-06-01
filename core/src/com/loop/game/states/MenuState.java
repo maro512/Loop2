@@ -1,4 +1,4 @@
-package com.loop.game.states;
+package com.loop.game.States;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
