@@ -177,15 +177,16 @@ public class DataBase
         DataBase db = new DataBase();
         String user = "Piotr";
         char[] pass = "Katowice".toCharArray();
-        char[] pass2="katowice".toCharArray();
+        char[] pass2= "katowice".toCharArray();
             System.out.println(" Dodawanie... "+ db.addUser(user,pass));
             System.out.println(" Dodawanie... "+ db.addUser("testuser","loop".toCharArray()));
         System.out.println("Logowanie1... "+ db.checkUser(user,pass));
         System.out.println("Logowanie2... "+ db.checkUser(user,pass2));
-        System.out.println("Zmiana hasła... "+ db.checkUser(user,pass2));
+
+        System.out.println("Zmiana hasła... "+ db.changePassword(user,pass2));
         System.out.println("Logowanie1... "+ db.checkUser(user,pass));
         System.out.println("Logowanie2... "+ db.checkUser(user,pass2));
-        System.out.println("Powrót hasła... "+ db.checkUser(user,pass));
+        System.out.println("Powrót hasła... "+ db.changePassword(user,pass));
         System.out.println("Gra1... "+ db.commitGameResult(new String[]{"Piotr","testuser"},0));
         System.out.println("Gra2... "+ db.commitGameResult(new String[]{"JFGauss","testuser"},1));
         System.out.println("Gra3... "+ db.commitGameResult(new String[]{"testuser","Newton"},1));
