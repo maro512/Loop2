@@ -115,7 +115,7 @@ public class Game {
     }
 
     public List<Tile> getWinningLine() {
-        return board.getWinningLine(currentPlayer == BLACK);
+        return board.getWinningLine(currentPlayer != 0);
     }
 
     public Player getCrrPlayer() { return players[currentPlayer]; }

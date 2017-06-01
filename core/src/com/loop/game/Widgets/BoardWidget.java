@@ -132,26 +132,18 @@ public class BoardWidget extends Widget {
             Collection<? extends Cell> winningLine = game.getWinningLine();
 
             for (Cell cell : cells) {
-                if (winningLine.contains(cell)) {
-                    batch.setColor(1, 1, 1, parentAlpha);
-                } else {
-                    batch.setColor(0.5f, 0.5f, 0.5f, parentAlpha);
+                if (cell != null) {
+                    if (winningLine.contains(cell)) {
+                        batch.setColor(1, 1, 1, parentAlpha);
+                    } else {
+                        batch.setColor(0.5f, 0.5f, 0.5f, parentAlpha);
+                    }
+                    if (cell.isTile()) {
+                        batch.draw(tileTextures.get(cell.getType()), pos.x + camera.x + dragPos.x + cell.getX() * tileWidth,
+                                pos.y + camera.y + dragPos.y + cell.getY() * tileHeight, tileWidth, tileHeight);
+                    }
                 }
-                batch.draw(tileTextures.get(cell.getType()), pos.x + camera.x + dragPos.x + cell.getX() * tileWidth,
-                        pos.y + camera.y + dragPos.y + cell.getY() * tileHeight, tileWidth, tileHeight);
             }
-
-            /*
-            for (Cell cell : cells) {
-                if (!winningLine.contains(cell)) {
-                    batch.setColor(1, 1, 1, parentAlpha);
-                } else {
-                    batch.setColor(.5f, .5f, .5f, parentAlpha);
-                }
-                batch.draw(tileTextures.get(cell.getType()), pos.x + camera.x + dragPos.x + cell.getX() * tileWidth,
-                        pos.y + camera.y + dragPos.y + cell.getY() * tileHeight, tileWidth, tileHeight);
-            }
-            */
         }
         batch.flush();
         ScissorStack.popScissors();
@@ -160,7 +152,7 @@ public class BoardWidget extends Widget {
     @Override
     protected void sizeChanged() {
         pos = new Vector2(getX(), getY());
-        size = new Vector2(getParent().getWidth(), getHeight());
+        size = new Vector2(getWidth(), getHeight());
         bounds.setPosition(pos.x, pos.y);
         bounds.setSize(size.x, size.y);
         if(!started) {

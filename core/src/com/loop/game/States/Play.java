@@ -94,11 +94,11 @@ public class Play implements Screen {
         table.setBackground("bg_black");
         table.setTouchable(Touchable.enabled);
         table.setFillParent(true);
-        table.setDebug(true);
+        // table.setDebug(true);
         table.add(playersLabels[0]).colspan((int)Math.floor(BUTTONS_AMOUNT*.5)).expandX().height(30f);
         table.add(playersLabels[1]).colspan((int)Math.ceil(BUTTONS_AMOUNT*.5)).expandX().height(30f);
         table.row().fillX().expandY();
-        table.add(bv).colspan(BUTTONS_AMOUNT).fill();
+        table.add(bv).pad(10).colspan(BUTTONS_AMOUNT).fill();
         table.row();
 
         for (Map.Entry<Button, Byte> entry : buttons.entrySet()) {
@@ -157,7 +157,7 @@ public class Play implements Screen {
         table.add(new Label(game.getCrrPlayer().getName() + " "
                             + loopGame.loc.get("won"), loopGame.skin)).expandX();
         table.row().fillX().expandY();
-        table.add(bv).fill();
+        table.add(bv).pad(10).colspan(BUTTONS_AMOUNT).fill();
         table.row().expandX();
 
         ClickListener backListener = new ClickListener(){
