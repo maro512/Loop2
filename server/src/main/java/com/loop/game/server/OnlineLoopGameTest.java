@@ -4,6 +4,7 @@ import com.loop.game.Net.*;
 import java.awt.EventQueue;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -17,21 +18,21 @@ public class OnlineLoopGameTest implements ConnectionListener
     Boolean gameEnded;
     private Client client;
 
-    OnlineLoopGameTest()
+    private OnlineLoopGameTest()
     {
         client=new Client(this);
         gameEnded = null;
-
     }
+
     public static void main(String[] args) throws IOException {
         Scanner scr = new Scanner(System.in);
         OnlineLoopGameTest currSession = new OnlineLoopGameTest();
         if ( args.length>0 )
             currSession.client.setServerAddress(args[0]);
         while(!currSession.client.isServerConnected()) {
-            System.out.println("Podaj login:");//TODO: w tym miejscu wyświetlam okno z logowaniem i pobieram l i h
+            System.out.print("Podaj login: ");//TODO: w tym miejscu wyświetlam okno z logowaniem i pobieram l i h
             String login = scr.next();
-            System.out.println("Podaj hasło:");//TODO: "gwiazdkowanie" hasła
+            System.out.print("Podaj hasło: ");//TODO: "gwiazdkowanie" hasła
             String pass = scr.next();
             currSession.client.logIn(login, pass);
             try{
@@ -65,6 +66,11 @@ public class OnlineLoopGameTest implements ConnectionListener
         }
         //else playGame();
         return true;
+    }
+
+    @Override
+    public void recieveRating(List<RatingEntry> rating)
+    {
     }
 
     @Override

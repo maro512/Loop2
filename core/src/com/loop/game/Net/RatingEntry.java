@@ -38,4 +38,20 @@ public class RatingEntry
         this.points=points;
         this.gamesPlayed=games;
     }
+
+    public String toString() // (miejsce: "nick" wygrane/rozegrane) 13: "gracz" 7/10
+    {
+        return String.format("#%3d: \"%s\"\t %d/%d", position, name, points, gamesPlayed);
+    }
+
+    public String encode()
+    {
+        return String.format(" %d %s %d %d", position, name, points, gamesPlayed);
+    }
+
+    public static RatingEntry decode(String[] tokens)
+    {
+        return new RatingEntry(Integer.parseInt(tokens[1]), tokens[2],
+                               Integer.parseInt(tokens[3]),Integer.parseInt(tokens[4]));
+    }
 }

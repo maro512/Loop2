@@ -4,6 +4,8 @@
  */
 package com.loop.game.Net;
 
+import java.util.List;
+
 /**
  * Interfejs nasłuchujący odpowiedzi serwera/drugiego gracza w ramach komunikacji sieciowej.
  * Pytania do serwera wysyłamy przez obiekt <code>Client</code>.
@@ -14,6 +16,9 @@ public interface ConnectionListener
 {
     /** Przetwarza komunikat z zewnątrz, podzielony na argumenty. Zwraca, czy nie wystąpił błąd. */
     boolean processCommand(String[] command);
+
+    /** Odbiera wynik zapytania o ranking z serwera. */
+    void recieveRating(List<RatingEntry> rating);
     
     /** Zdarzenie przerwania połączenia.
      * Parametr oznacza, czy przerwano połączenie z drugim graczem (false), czy z serwerem (true). */

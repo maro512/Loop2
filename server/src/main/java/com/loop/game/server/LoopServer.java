@@ -7,6 +7,7 @@ package com.loop.game.server;
 import com.loop.game.Net.*;
 import java.io.*;
 import java.net.*;
+import java.sql.SQLException;
 import java.util.logging.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -17,26 +18,34 @@ import java.util.concurrent.*;
  * Edited by Kamil on 2017-05-21
  */
 //TODO: gdy serwer jest wyłączony i próbujemy łączyć się do niego 2 razy to socket nie jst zamkniety
-public class LoopServer implements Runnable
+public class LoopServer //implements Runnable
 {
     private final ExecutorService executor= Executors.newCachedThreadPool();
     private List<Player_Server> database;
     private ServerSocket main;
     private Map<String,ClientInteraction> clients;
+    private final DataBase dataBase;
 
     //public static final int CLIENT_PORT= 7459;
     private long loginTimeout= 10000;
     private int playRequestConnectionTimeout= 10000;
 
-    public LoopServer()
+    public LoopServer() throws Exception
     {
         database = new LinkedList<Player_Server>();
+        dataBase= new DataBase();
         clients = new ConcurrentHashMap<String,ClientInteraction>();
     }
 
-    public static void main(String args[])
+    public static void main(String args[]) throws Exception
     {
-        new LoopServer().run();
+        LoopServer server = new LoopServer();
+        if (args.length>1)
+        {
+            server.setLoginTimeout(Long.parseLong(args[0]));
+            server.setPlayRequestConnectionTimeout(Integer.parseInt(args[1]));
+        }
+        server.run();
     }
 
     private String timeLimitedReadLine(final Scanner in, long milis)
@@ -61,7 +70,7 @@ public class LoopServer implements Runnable
         }
     }
 
-    @Override
+    //@Override
     public void run()
     {
         try {
@@ -139,7 +148,7 @@ public class LoopServer implements Runnable
                     else if (command[0].equals(Client.CMD_GAMEEND)) cmdGameEnd(command);
 
                     // Tu można podododawać inne komendy, które serwer może obsługiwać.
-                    else if(command[0].equals(Client.CMD_LISTAVAILABLE)) cmdListAvailable(command);
+                    else if(command[0].equals(Client.CMD_DATABASEQUERY)) cmdRatingQuery(command);
                     else
                     {
                         if(!command[0].equals(Client.CMD_LOGOUT))
@@ -214,17 +223,40 @@ public class LoopServer implements Runnable
         {
             if (otherPlayer==null || state!=State.GAME) return; // throw new IllegalStateException("There is no game played!");
             System.out.println("Gra zakończona przez gracza \""+name+"\".");
-            queue.offer(Client.CMD_GAMEEND+" "+otherPlayer.name);
+            try {
+                String players[] = new String[]{otherPlayer.name, name};
+                dataBase.commitGameResult(players, args.length-1); // Gdy jest argument => gracz wygrał.
+            } catch (SQLException ex)
+            {
+                System.out.println("Błąd! Nie udało się zapisać wyniku gry w bazie danych!");
+            }
+            queue.offer(Client.CMD_GAMEEND+" "+otherPlayer.name); // Informacja dla graczy o końcu gry
             otherPlayer.queue.offer(Client.CMD_GAMEEND+" "+name);
-            state=otherPlayer.state= State.TERMINATE; // Nie wiem co ten stan oznacza, tak naprawdę...
+            state=otherPlayer.state = State.TERMINATE; // Nie wiem co ten stan oznacza, tak naprawdę...
         }
 
-
-        /** Odsyła do klienta listę zalogowanych użytkowników. */
-        private void cmdListAvailable(String[] command)
+        /** Odsyła do klienta listę najlepszych graczy oraz jego miejsce w rankingu */
+        private void cmdRatingQuery(String[] command) throws IOException
         {
-            // if (state!=State.NULL) return;
-            //TODO
+            try {
+                int count = Integer.parseInt(command[2]);
+                String playerName = command[1];
+                List<RatingEntry> rating = dataBase.askForRating(count);
+                RatingEntry player = dataBase.getPlayerEntry(playerName);
+                for(RatingEntry entry: rating)
+                {
+                    queue.offer(Client.CMD_DATABASEQUERY+entry.encode());
+                }
+                if (player.getPosition()>count)
+                    queue.offer(Client.CMD_DATABASEQUERY+player.encode()); // Dopisz gracza do rankingu
+                queue.offer(Client.CMD_ENDDATA); // Koniec danych.
+            } catch(SQLException ex)
+            {
+                queue.offer(Client.ERROR); // Błąd połączenia z bazą.
+            } catch(NumberFormatException e)
+            {
+                throw new IOException(e);
+            }
         }
 
         // inne metody do obsługi zapytań
@@ -309,13 +341,14 @@ public class LoopServer implements Runnable
             return "\""+name+"\" ("+ addr.toString()+")";
         }
 
+        /*
         private boolean checkDatabase(String []data){
-            if(data.length>2) return false;
+            if(data.length!=2) return false;
             for (Player_Server p: database) {
                 if(p.check(data[0],data[1])) return true;
             }
             return false;
-        }
+        } */
 
         /** Sprawdza prawdziwość danych logowania.
          * Jesli operacja się nie powiedzie, w zmiennej name jest zapisywany null.
@@ -324,15 +357,23 @@ public class LoopServer implements Runnable
         private void authenticateUser(String input)
         {
             String []data = input.trim().split("//");
-            name = data[0];
-            if(!checkDatabase(data)){
-                System.out.println("Gracz "+name+" nie istnieje w bazie danych!");
+            name=data[0];
+            if (clients.containsKey(name))
+            {
+                System.out.println("Gracz o nazwie: " + name + " jest już zalogowany!");
                 name=null;
             }
-            else if (clients.containsKey(name))
+            try {
+                if ( dataBase.checkUser(name, data[1].toCharArray()) ) return;
+                else
+                {
+                    System.out.println("Gracz " + name + " nie istnieje w bazie danych!");
+                    name=null;
+                }
+            } catch (SQLException ex)
             {
-                System.out.println("Gracz o nazwie: "+input+" już jest zalogowany!");
-                name=null;
+                System.err.println("Błąd połączenia z bazą danych!");
+                ex.printStackTrace();
             }
         }
 
