@@ -39,6 +39,8 @@ public class BoardWidget extends Widget {
     private Game game;
     private Play play;
 
+    // TODO: Make fitviewport work
+
     public final InputListener listener = new InputListener() {
         private Vector2 dragStart;
 
@@ -129,20 +131,23 @@ public class BoardWidget extends Widget {
                         pos.y + camera.y + dragPos.y + cell.getY() * tileHeight, tileWidth, tileHeight);
             }
         } else {
-            Collection<? extends Cell> winningLine = game.getWinningLine();
+            List<Tile> winningLine = game.getWinningLine();
 
+            batch.setColor(.5f, .5f, .5f, parentAlpha);
             for (Cell cell : cells) {
-                if (cell != null) {
-                    if (winningLine.contains(cell)) {
-                        batch.setColor(1, 1, 1, parentAlpha);
-                    } else {
-                        batch.setColor(0.5f, 0.5f, 0.5f, parentAlpha);
-                    }
-                    if (cell.isTile()) {
-                        batch.draw(tileTextures.get(cell.getType()), pos.x + camera.x + dragPos.x + cell.getX() * tileWidth,
-                                pos.y + camera.y + dragPos.y + cell.getY() * tileHeight, tileWidth, tileHeight);
-                    }
+                if (cell.isTile()) {
+                    batch.draw(tileTextures.get(cell.getType()), pos.x + camera.x + dragPos.x + cell.getX() * tileWidth,
+                            pos.y + camera.y + dragPos.y + cell.getY() * tileHeight, tileWidth, tileHeight);
                 }
+            }
+
+            batch.setColor(1, 1, 1, parentAlpha);
+            for (Tile tile : winningLine) {
+                if (tile != null) {
+                    batch.draw(tileTextures.get(tile.getType()), pos.x + camera.x + dragPos.x + tile.getX() * tileWidth,
+                            pos.y + camera.y + dragPos.y + tile.getY() * tileHeight, tileWidth, tileHeight);
+                }
+
             }
         }
         batch.flush();

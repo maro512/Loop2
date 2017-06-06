@@ -6,16 +6,11 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.Touchable;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.loop.game.LoopGame;
 
 /**
@@ -45,7 +40,7 @@ public class Log implements Screen {
         inputField[1].setPasswordCharacter('*');
         inputField[1].setPasswordMode(true);
 
-        this.stage = new Stage(new ScreenViewport(), game.batch) {
+        this.stage = new Stage(game.VIEWPORT, game.batch) {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 super.unfocusAll();

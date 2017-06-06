@@ -2,6 +2,7 @@ package com.loop.game.States;
 
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -15,7 +16,6 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Scaling;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.loop.game.LoopGame;
 
 /**
@@ -42,7 +42,7 @@ public class MainMenu implements Screen {
         this.registerBtn = new TextButton(game.loc.get("register"), game.skin);
         this.logBtn = new TextButton(game.loc.get("login"), game.skin);
         this.optBtn = new TextButton(game.loc.get("options"), game.skin);
-        this.stage = new Stage(new ScreenViewport(), game.batch);
+        this.stage = new Stage(game.VIEWPORT, game.batch);
         fillStage();
         Gdx.input.setInputProcessor(stage);
     }
@@ -50,7 +50,7 @@ public class MainMenu implements Screen {
     private void fillStage() {
         Table table = new Table();
         table.setFillParent(true);
-        table.padTop(10*BUTTON_PAD);
+        table.padTop(5*BUTTON_PAD);
         table.add(logo);
         table.row(); table.add(offlineBtn).padBottom(BUTTON_PAD);
         table.row(); table.add(onlineBtn).padBottom(BUTTON_PAD);
@@ -109,6 +109,9 @@ public class MainMenu implements Screen {
 
     @Override
     public void render(float delta) {
+        if (Gdx.input.isKeyPressed(Input.Keys.BACK)){
+            Gdx.app.exit();
+        }
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.draw();
     }

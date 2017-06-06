@@ -1,6 +1,7 @@
 package com.loop.game.States;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -10,13 +11,19 @@ import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.badlogic.gdx.utils.ByteArray;
+import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Scaling;
+import com.badlogic.gdx.utils.viewport.FillViewport;
+import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.loop.game.GameModel.Cell;
 import com.loop.game.GameModel.Game;
 import com.loop.game.GameModel.Player;
@@ -43,6 +50,9 @@ public class Play implements Screen {
     private Label.LabelStyle passiveStyle;
     private BoardWidget bv;
     private Table table;
+    private Image playerBg;
+    private Image playerBg2;
+    private final float SCALE = 50f;
 
     private ClickListener buttonClick = new ClickListener(){
         @Override
@@ -50,11 +60,6 @@ public class Play implements Screen {
             makeMove(buttons.get(e.getListenerActor()));
         }
     };
-
-    /*
-        TODO:
-          - tla do tabel
-    */
 
     public Play(final LoopGame loopGame, Player[] players) {
         this.loopGame = loopGame;
@@ -64,11 +69,16 @@ public class Play implements Screen {
         this.playersLabels = new Label[2];
         this.activeStyle = new Label.LabelStyle(loopGame.font, new Color(240/255f, 204/255f, 0, 1));
         this.passiveStyle = new Label.LabelStyle(loopGame.font, new Color(112/255f, 101/255f, 34/255f, 1));
+        this.playerBg = new Image(new Texture(Gdx.files.internal("players.png")));
+        playerBg.setScaling(Scaling.stretch);
+        this.playerBg2 = new Image(new Texture(Gdx.files.internal("players.png")));
+        playerBg2.setScaling(Scaling.stretch);
         this.bv = new BoardWidget(loopGame.skin, game, this);
         game.pickFirstPlayer();
 
         for (int i=0; i<players.length; ++i) {
             playersLabels[i] = new Label(players[i].getName(), loopGame.skin);
+            playersLabels[i].setAlignment(Align.center);
         }
         makeButtons();
         fillStage();
@@ -94,10 +104,10 @@ public class Play implements Screen {
         table.setBackground("bg_black");
         table.setTouchable(Touchable.enabled);
         table.setFillParent(true);
-        // table.setDebug(true);
-        table.add(playersLabels[0]).colspan((int)Math.floor(BUTTONS_AMOUNT*.5)).expandX().height(30f);
-        table.add(playersLabels[1]).colspan((int)Math.ceil(BUTTONS_AMOUNT*.5)).expandX().height(30f);
-        table.row().fillX().expandY();
+        table.setDebug(true);
+        table.add(new Stack(playerBg, playersLabels[0])).colspan((int)Math.floor(BUTTONS_AMOUNT*.5)).expandX().height(SCALE);
+        table.add(new Stack(playerBg2, playersLabels[1])).colspan((int)Math.ceil(BUTTONS_AMOUNT*.5)).expandX().height(SCALE);
+        table.row().expand();
         table.add(bv).pad(10).colspan(BUTTONS_AMOUNT).fill();
         table.row();
 
@@ -105,9 +115,11 @@ public class Play implements Screen {
             table.add(entry.getKey()).colspan(1).height(70f).width(70f);
         }
 
+
         disableAllButtons();
 
         stage.addActor(table);
+
 
         highlightCurrentPlayer();
     }
@@ -182,6 +194,10 @@ public class Play implements Screen {
 
     @Override
     public void render(float delta) {
+        if (Gdx.input.isKeyPressed(Input.Keys.BACK)){
+            back();
+        }
+
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.act(delta);
         stage.draw();
@@ -210,5 +226,10 @@ public class Play implements Screen {
     @Override
     public void resume() {
 
+    }
+
+    private void back() {
+        loopGame.setScreen(new MainMenu(loopGame));
+        dispose();
     }
 }

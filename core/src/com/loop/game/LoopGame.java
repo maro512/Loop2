@@ -11,6 +11,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.I18NBundle;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import com.loop.game.States.MainMenu;
 
 import java.util.Locale;
@@ -20,9 +22,10 @@ public class LoopGame extends Game {
     public BitmapFont font;
     public Skin skin;
     public I18NBundle loc;
+    public static final String TITLE = "Loop";
     public static final int WIDTH = 480;//Gdx.app.getGraphics().getWidth();
     public static final int HEIGHT = 800;//Gdx.app.getGraphics().getHeight();
-    public static final String TITLE = "Loop";
+    public static final Viewport VIEWPORT = new FitViewport(WIDTH, HEIGHT);
 
     private FileHandle langPath;
 
@@ -42,6 +45,7 @@ public class LoopGame extends Game {
         langPath = Gdx.files.internal("bundle/Loc");
         loc = I18NBundle.createBundle(langPath, new Locale("en"));
         this.setScreen(new MainMenu(this));
+        Gdx.input.setCatchBackKey(true);
     }
 
     public void render() {

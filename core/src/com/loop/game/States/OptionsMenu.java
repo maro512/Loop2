@@ -39,7 +39,7 @@ public class OptionsMenu implements Screen {
         this.soundBtn = new TextButton(game.loc.get(soundFlag ? "soundOn" : "soundOff"), game.skin);
         this.langBtn = new TextButton(game.loc.get(langFlag ? "lngEnglish" : "lngPolish"), game.skin);
         this.backBtn = new TextButton(game.loc.get("back"), game.skin);
-        this.stage = new Stage(new ScreenViewport(), game.batch);
+        this.stage = new Stage(game.VIEWPORT, game.batch);
         fillStage();
         Gdx.input.setInputProcessor(stage);
     }

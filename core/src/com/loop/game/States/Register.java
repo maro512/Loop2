@@ -45,7 +45,7 @@ public class Register implements Screen {
             inputField[i].setPasswordMode(true);
         }
 
-        this.stage = new Stage(new ScreenViewport(), game.batch) {
+        this.stage = new Stage(game.VIEWPORT, game.batch) {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 super.unfocusAll();
