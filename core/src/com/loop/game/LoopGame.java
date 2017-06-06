@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.I18NBundle;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -18,7 +17,8 @@ import com.loop.game.States.MainMenu;
 import java.util.Locale;
 
 public class LoopGame extends Game {
-    public SpriteBatch batch;
+    // public FreeTypeFontGenerator generator;
+    public SpriteBatch BATCH;
     public BitmapFont font;
     public Skin skin;
     public I18NBundle loc;
@@ -30,7 +30,7 @@ public class LoopGame extends Game {
     private FileHandle langPath;
 
     public void create() {
-        batch = new SpriteBatch();
+        BATCH = new SpriteBatch();
         font = new BitmapFont();
         skin = new Skin(Gdx.files.internal("uiskin.json"));
         Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
@@ -56,7 +56,7 @@ public class LoopGame extends Game {
     public void changeLang ( Locale lng ) { loc = I18NBundle.createBundle(langPath, lng); }
 
     public void dispose() {
-        batch.dispose();
+        BATCH.dispose();
         font.dispose();
         skin.dispose();
     }

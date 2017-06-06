@@ -20,10 +20,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Scaling;
-import com.badlogic.gdx.utils.viewport.FillViewport;
-import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.loop.game.GameModel.Cell;
 import com.loop.game.GameModel.Game;
 import com.loop.game.GameModel.Player;
@@ -52,7 +49,7 @@ public class Play implements Screen {
     private Table table;
     private Image playerBg;
     private Image playerBg2;
-    private final float SCALE = 50f;
+    private final float SCALE = 70f;
 
     private ClickListener buttonClick = new ClickListener(){
         @Override
@@ -64,12 +61,12 @@ public class Play implements Screen {
     public Play(final LoopGame loopGame, Player[] players) {
         this.loopGame = loopGame;
         this.game = new Game(players);
-        this.stage = new Stage(new ScreenViewport(), loopGame.batch);
+        this.stage = new Stage(new ScreenViewport(), loopGame.BATCH);
         this.buttons = new HashMap<Button, Byte>();
         this.playersLabels = new Label[2];
         this.activeStyle = new Label.LabelStyle(loopGame.font, new Color(240/255f, 204/255f, 0, 1));
         this.passiveStyle = new Label.LabelStyle(loopGame.font, new Color(112/255f, 101/255f, 34/255f, 1));
-        this.playerBg = new Image(new Texture(Gdx.files.internal("players.png")));
+        this.playerBg = new Image(new Texture(Gdx.files.internal("playerWhite.png")));
         playerBg.setScaling(Scaling.stretch);
         this.playerBg2 = new Image(new Texture(Gdx.files.internal("players.png")));
         playerBg2.setScaling(Scaling.stretch);
@@ -112,7 +109,7 @@ public class Play implements Screen {
         table.row();
 
         for (Map.Entry<Button, Byte> entry : buttons.entrySet()) {
-            table.add(entry.getKey()).colspan(1).height(70f).width(70f);
+            table.add(entry.getKey()).colspan(1).height(SCALE).width(SCALE);
         }
 
 
@@ -166,7 +163,7 @@ public class Play implements Screen {
 
     private void showWinScreen() {
         table.clearChildren();
-        table.add(new Label(game.getCrrPlayer().getName() + " "
+        table.add(new Label(game.getWinningPlayer().getName() + " "
                             + loopGame.loc.get("won"), loopGame.skin)).expandX();
         table.row().fillX().expandY();
         table.add(bv).pad(10).colspan(BUTTONS_AMOUNT).fill();

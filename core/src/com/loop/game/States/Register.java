@@ -11,8 +11,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.loop.game.GameModel.Player;
 import com.loop.game.LoopGame;
 
 /**
@@ -45,7 +43,7 @@ public class Register implements Screen {
             inputField[i].setPasswordMode(true);
         }
 
-        this.stage = new Stage(game.VIEWPORT, game.batch) {
+        this.stage = new Stage(game.VIEWPORT, game.BATCH) {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 super.unfocusAll();

@@ -32,6 +32,7 @@ public class BoardWidget extends Widget {
     private Texture texture;
     private Map<Byte, Texture> tileTextures;
     private Map<Byte, Texture> shadowedTileTextures;
+    private Texture selectedTexture;
     private Collection<Cell> cells;
     private int tileWidth, tileHeight;
     private final float SCALE = .25f;
@@ -94,6 +95,7 @@ public class BoardWidget extends Widget {
             tileTextures.put(b, new Texture("tile_" + b + ".png"));
             shadowedTileTextures.put(b, new Texture("tile_" + b + "s.png"));
         }
+        tileTextures.put((byte)-1, new Texture("deadTile.png"));
         Texture emptyCell = new Texture("emptyCell.png");
         tileTextures.put((byte)0, emptyCell);
         tileWidth = (int) (emptyCell.getWidth() * SCALE);
@@ -106,6 +108,7 @@ public class BoardWidget extends Widget {
         camera = new Vector2(0, 0);
         bounds = new Rectangle(0, 0, 0, 0);
         dragPos = new Vector2(0,0);
+        selectedTexture = new Texture("chosenCell.png");
     }
 
     @Override
@@ -122,13 +125,14 @@ public class BoardWidget extends Widget {
         if (!game.isTerminated()) {
             Cell selected = game.getSelected();
             for (Cell cell : cells) {
+                batch.setColor(1, 1, 1, parentAlpha);
                 if (cell == selected) {
-                    batch.setColor(1, 1, 0, parentAlpha);
+                    batch.draw(selectedTexture, pos.x + camera.x + dragPos.x + cell.getX() * tileWidth,
+                            pos.y + camera.y + dragPos.y + cell.getY() * tileHeight, tileWidth, tileHeight);
                 } else {
-                    batch.setColor(1, 1, 1, parentAlpha);
+                    batch.draw(tileTextures.get(cell.getType()), pos.x + camera.x + dragPos.x + cell.getX() * tileWidth,
+                            pos.y + camera.y + dragPos.y + cell.getY() * tileHeight, tileWidth, tileHeight);
                 }
-                batch.draw(tileTextures.get(cell.getType()), pos.x + camera.x + dragPos.x + cell.getX() * tileWidth,
-                        pos.y + camera.y + dragPos.y + cell.getY() * tileHeight, tileWidth, tileHeight);
             }
         } else {
             List<Tile> winningLine = game.getWinningLine();

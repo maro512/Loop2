@@ -10,7 +10,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.loop.game.LoopGame;
 
 import java.util.Locale;
@@ -39,7 +38,7 @@ public class OptionsMenu implements Screen {
         this.soundBtn = new TextButton(game.loc.get(soundFlag ? "soundOn" : "soundOff"), game.skin);
         this.langBtn = new TextButton(game.loc.get(langFlag ? "lngEnglish" : "lngPolish"), game.skin);
         this.backBtn = new TextButton(game.loc.get("back"), game.skin);
-        this.stage = new Stage(game.VIEWPORT, game.batch);
+        this.stage = new Stage(game.VIEWPORT, game.BATCH);
         fillStage();
         Gdx.input.setInputProcessor(stage);
     }

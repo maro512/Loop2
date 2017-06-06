@@ -40,7 +40,7 @@ public class Log implements Screen {
         inputField[1].setPasswordCharacter('*');
         inputField[1].setPasswordMode(true);
 
-        this.stage = new Stage(game.VIEWPORT, game.batch) {
+        this.stage = new Stage(game.VIEWPORT, game.BATCH) {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 super.unfocusAll();

@@ -42,7 +42,7 @@ public class MainMenu implements Screen {
         this.registerBtn = new TextButton(game.loc.get("register"), game.skin);
         this.logBtn = new TextButton(game.loc.get("login"), game.skin);
         this.optBtn = new TextButton(game.loc.get("options"), game.skin);
-        this.stage = new Stage(game.VIEWPORT, game.batch);
+        this.stage = new Stage(game.VIEWPORT, game.BATCH);
         fillStage();
         Gdx.input.setInputProcessor(stage);
     }
@@ -51,6 +51,7 @@ public class MainMenu implements Screen {
         Table table = new Table();
         table.setFillParent(true);
         table.padTop(5*BUTTON_PAD);
+        table.setDebug(true);
         table.add(logo);
         table.row(); table.add(offlineBtn).padBottom(BUTTON_PAD);
         table.row(); table.add(onlineBtn).padBottom(BUTTON_PAD);

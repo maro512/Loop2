@@ -11,11 +11,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.loop.game.GameModel.Player;
 import com.loop.game.LoopGame;
-
-import java.util.Locale;
 
 /**
  * Created by tobi on 4/28/17.
@@ -40,7 +37,7 @@ public class OfflinePlayerInput implements Screen {
             inputField[i].setMessageText(game.loc.get("playerPrompt") + " " + (i+1));
         }
 
-        this.stage = new Stage(game.VIEWPORT, game.batch) {
+        this.stage = new Stage(game.VIEWPORT, game.BATCH) {
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
                 super.unfocusAll();
