@@ -9,124 +9,120 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
-import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.loop.game.LoopGame;
+import com.loop.game.Net.Client;
+
+import java.util.Arrays;
 
 /**
  * Created by tobi on 4/28/17.
  */
 
-public class Log implements Screen {
-    private final LoopGame game;
-    private final Stage stage;
-    private TextField [] inputField;
+public class Log extends BasicScreen
+{
+    private TextField userField, passField;
     private TextButton logBtn;
     private TextButton backBtn;
-    private final int TEXT_FIELDS = 2;
 
-    public Log(final LoopGame game) {
-        this.game = game;
-        inputField = new TextField [TEXT_FIELDS];
-        this.logBtn = new TextButton(game.loc.get("login"), game.skin);
-        this.backBtn = new TextButton(game.loc.get("back"), game.skin);
+    public Log(final LoopGame game)
+    {
+        super(game);
+        this.logBtn = new TextButton(getString("login"), game.skin);
+        this.backBtn = new TextButton(getString("back"), game.skin);
 
-        for (int i=0; i<TEXT_FIELDS; ++i) {
-            inputField[i] = new TextField("", game.skin);
-        }
+        userField = new TextField("", game.skin);
+        passField = new TextField("", game.skin);
 
-        inputField[0].setMessageText(game.loc.get("username"));
-        inputField[1].setMessageText(game.loc.get("password"));
-        inputField[1].setPasswordCharacter('*');
-        inputField[1].setPasswordMode(true);
-
-        this.stage = new Stage(game.VIEWPORT, game.BATCH) {
-            @Override
-            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                super.unfocusAll();
-                Gdx.input.setOnscreenKeyboardVisible(false);
-                return super.touchDown(screenX, screenY, pointer, button);
-            }
-        };
+        userField.setMessageText(getString("username"));
+        passField.setMessageText(getString("password"));
+        passField.setPasswordCharacter('*');
+        passField.setPasswordMode(true);
         fillStage();
-        Gdx.input.setInputProcessor(stage);
+        Gdx.input.setInputProcessor(getStage());
     }
 
-    private void fillStage() {
-        VerticalGroup vg = new VerticalGroup();
+    private void fillStage()
+    {
+        Table vg = new Table();
         vg.setFillParent(true);
-        vg.space(2);
-        vg.center();
-        vg.setDebug(true, true);
-
-        for (int i=0; i<TEXT_FIELDS; ++i) {
-            vg.addActor(inputField[i]);
-        }
-
-        vg.addActor(logBtn);
-        vg.addActor(backBtn);
-
+        vg.row().fillY();
+        vg.row(); vg.add(userField).padBottom(BUTTON_PAD).width(getStage().getWidth()*.7f);
+        vg.row(); vg.add(passField).padBottom(BUTTON_PAD).width(getStage().getWidth()*.7f);
+        vg.row(); vg.add(logBtn).padBottom(BUTTON_PAD).width(getStage().getWidth()*.4f);
+        vg.row(); vg.add(backBtn).padBottom(BUTTON_PAD).width(getStage().getWidth()*.4f);
+        vg.row().fillY();
         setButtonActions();
-        stage.addActor(vg);
+        getStage().addActor(vg);
     }
 
     private void setButtonActions() {
         logBtn.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                // TODO
+                //hideKeyboard();
+                String name = userField.getText();
+                String pass = passField.getText();
+                if(getClient().isServerConnected())
+                {
+                    //TODO: komunikat od LibGDX jakieś okienko czy coś ?
+                    System.out.println("Już zalogowano");
+                }
+                else
+                    getClient().logIn(name,pass);
             }
         });
 
         backBtn.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-            back();
+                //hideKeyboard();
+                backToMainMenu();
             }
         });
     }
 
     @Override
-    public void resize(int width, int height) {
-        stage.getViewport().update(width, height, true);
-    }
-
-    public void render(float delta) {
-        if (Gdx.input.isKeyPressed(Input.Keys.BACK)){
-            back();
+    public boolean processCommand(String[] command)
+    {
+        System.out.println("Komunikat: "+ Arrays.toString(command));
+        if (command[0].equals(Client.ERROR))
+        {
+            Gdx.app.postRunnable(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    getClient().close();
+                }
+            });
         }
-
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        stage.draw();
+        return true;
     }
 
     @Override
-    public void dispose() {
-        stage.dispose();
+    public void connectionDown(boolean server)
+    {
+        System.out.println(" Przerwano połączenie z "+ (server ? "serwerem!" : "graczem!"));
+        //client.close();
     }
 
     @Override
-    public void show() {
-
-    }
-
-    @Override
-    public void hide() {
-
-    }
-
-    @Override
-    public void pause() {
-
-    }
-
-    @Override
-    public void resume() {
-
-    }
-
-    private void back() {
-        game.setScreen(new MainMenu(game));
-        dispose();
+    public void done(boolean success)
+    {
+        if (success)
+        {
+            Gdx.app.postRunnable(new Runnable(){
+                @Override
+                public void run()
+                {
+                    backToMainMenu();
+                }});
+        }
+        else
+        {
+            System.out.println("Nieudane logowanie!");
+        }
     }
 }

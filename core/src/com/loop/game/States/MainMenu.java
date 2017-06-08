@@ -21,6 +21,8 @@ import com.loop.game.Net.Client;
 import com.loop.game.Net.ConnectionListener;
 import com.loop.game.Net.RatingEntry;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 
 /**
@@ -39,7 +41,9 @@ public class MainMenu implements Screen, ConnectionListener
     private final TextButton optBtn;
     private final float BUTTON_PAD = 5;
 
-    public MainMenu(final LoopGame game) {
+    public MainMenu(final LoopGame game)
+    {
+        game.getClient().setConnectionListener(this);
         this.logo = new Image(new TextureRegionDrawable(new TextureRegion(new Texture(Gdx.files.internal("logo-loop.png"))))
                               , Scaling.fit, Align.top);
         this.game = game;
@@ -47,6 +51,7 @@ public class MainMenu implements Screen, ConnectionListener
         this.onlineBtn = new TextButton(game.loc.get("startOnline"), game.skin);
         this.registerBtn = new TextButton(game.loc.get("register"), game.skin);
         this.logBtn = new TextButton(game.loc.get("login"), game.skin);
+        if (game.getClient().isServerConnected()) logBtn.setText(game.loc.get("logout"));
         this.optBtn = new TextButton(game.loc.get("options"), game.skin);
         this.stage = new Stage(game.VIEWPORT, game.BATCH);
         fillStage();
@@ -80,10 +85,19 @@ public class MainMenu implements Screen, ConnectionListener
         onlineBtn.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
-                System.out.println("Online Game Button Pressed");
+                if(game.getClient()!=null && game.getClient().isServerConnected())
+                {
+                    game.setScreen(new OnlinePlayInput(game));
+                    dispose();
+                } else
+                    try {
+                        System.out.println(InetAddress.getLocalHost().getHostAddress());
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                    }
+
             }
         });
-
         registerBtn.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
@@ -95,6 +109,11 @@ public class MainMenu implements Screen, ConnectionListener
         logBtn.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                if (game.getClient().isServerConnected())
+                {
+                    System.out.println("Już zalogowano!");
+                    return;
+                }
                 game.setScreen(new Log(game));
                 dispose();
             }
