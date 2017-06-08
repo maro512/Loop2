@@ -4,8 +4,6 @@
  */
 package com.loop.game.Net;
 
-
-import com.badlogic.gdx.utils.async.AsyncTask;
 import com.loop.game.GameModel.Player;
 
 import java.io.*;
@@ -14,6 +12,8 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static com.loop.game.Net.Client.ConnectionState.*;
 
 /**
  * Klasa reprezentująca połączenie z serwerem LOOP. Kontroluje także komunikację
@@ -47,7 +47,6 @@ public class Client
     private Socket otherPlayer;
     private BlockingQueue<String> messagesToOtherPlayer;
     private PrintWriter otherPlayerOut;
-    private byte state=-1;
     private Boolean colour;
     private Boolean myMove;
     private String opponentName;
@@ -56,6 +55,10 @@ public class Client
     private int serverConnectionTimeout = 6000;
     private int otherPlayerConnectionTimeout = 11000;
 
+    public static enum ConnectionState
+    { VOID, READY, WAITING};
+    private ConnectionState state;
+
     public Client(ConnectionListener listener)
     {
         name = "default";
@@ -63,6 +66,7 @@ public class Client
         messagesToOtherPlayer =new LinkedBlockingQueue<String>();
         colour = null;
         myMove = null;
+        state= VOID;
         new Thread(new Runnable(){
             @Override
             public void run()
@@ -70,6 +74,7 @@ public class Client
                 serverAddress= new InetSocketAddress(SERVER_ADDRESS, SERVER_PORT);
             }
         }).start();
+
     }
 
     public void setConnectionListener(ConnectionListener listener)
@@ -81,8 +86,8 @@ public class Client
     /** Uruchamia połączenie z serwerem. Komunikacja dzieje się w osobnym wątku. */
     public void logIn(final String login, final String pass)
     {
-        if(state!= -1) throw new IllegalStateException("Connection is already open?");
-        state=1;
+        if(state!= VOID) throw new IllegalStateException("Connection is already open?");
+        setState(WAITING);
         new Thread(new Runnable()
         {
             @Override
@@ -125,10 +130,10 @@ public class Client
     {
         try {
             Scanner serverOut = connectToServer(login, pass);
-            if(state==0) user.done(true);
+            if(state==READY) user.done(true);
             else
             {
-                state=-1;
+                setState(VOID);
                 server.close();
                 user.done(false);
             }
@@ -136,7 +141,7 @@ public class Client
             while( isServerConnected() && serverOut.hasNextLine() )
             {
                 String[] command= serverOut.nextLine().split(" ");
-                state=0;
+                setState(READY);
                 if (command[0].equals(CMD_DATABASEQUERY))
                 {
                     readRatingAndSendToUser(command, serverOut);
@@ -160,7 +165,7 @@ public class Client
             {
                 Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
             }
-            state=-1;
+            setState(VOID);
         }
     }
 
@@ -172,6 +177,7 @@ public class Client
             list.add(RatingEntry.decode(firstLine));
             firstLine=input.nextLine().split(" ");
         }
+        setState(READY);
         user.recieveRating(list);
     }
 
@@ -188,8 +194,15 @@ public class Client
         System.out.print("Waiting for confirmation... "); //Może tu też jakiś szybki czas na odpowiedź?
         if (serverOut.hasNext() && serverOut.nextLine().startsWith(CMD_LOGIN))
         {
+            System.out.println("OK.");
             this.name=name;
-            state= 0;
+            setState(READY);
+        }
+        else
+        {
+            System.out.println("DAINED!");
+            this.name=null;
+            //setState(VOID);
         }
         return serverOut;
     }
@@ -237,11 +250,11 @@ public class Client
     public void startGame(final String otherPlayerName)
     {
         if(!isServerConnected()) throw new IllegalStateException("Server connection not established!");
-        if (state!=0 || isOtherPlayerConnected())
+        if (state!=READY || isOtherPlayerConnected())
         {
-            return;// throw new IllegalStateException("No other players on server"); // To powinien być wyjątek, ale psułby mi testy
+            return;// throw new IllegalStateException("Not ready to connect!"); // To powinien być wyjątek, ale psułby mi testy
         }
-        state=1;
+        setState(WAITING);
         colour = true;
         myMove = true;
         Thread t = new Thread(new Runnable() {
@@ -262,7 +275,7 @@ public class Client
             ServerSocket awaiting = new ServerSocket(port);
             awaiting.setSoTimeout(otherPlayerConnectionTimeout);
 
-            System.out.println("Wysłano rządanie do serwera...");
+            System.out.println("Wysłano żądanie do serwera...");
             if (otherPlayerName==null) serverIn.println(CMD_PLAY+" "+port); // Wyślij żądanie do serwera
             else serverIn.println(CMD_PLAY+" "+port+" "+otherPlayerName);
 
@@ -275,13 +288,12 @@ public class Client
             {
                 answer = in.nextLine().split(" ");
             }
-
             if (answer[0].equals(CMD_PLAY) && answer.length>1)
             {
                 System.out.println("Accepted :)");
                 otherPlayerOut= new PrintWriter(otherPlayer.getOutputStream(),true);
                 opponentName= answer[1];
-                user.processCommand(answer);
+                //user.processCommand(answer);
                 user.done(true);
                 otherPlayerListener(); // Uruchom nasłuchiwanie ruchów
             }
@@ -289,15 +301,16 @@ public class Client
             {
                 System.out.println("Aborted! :(");
                 serverIn.println(CMD_CLEAR);
-                state = 0;
+                disconnectOther();
                 user.done(false); // Zgłoś niepowodzenie operacji rozpoczęcia gry
             }
         } catch (IOException ex) {
             ex.printStackTrace();
             user.done(false); // Błąd
-        } finally {
-            state = 0;
-        }
+            setState(isServerConnected() ? READY : VOID);
+        } //finally {
+        //    state= ;
+        //}
     }
 
     //Zamyka połączenie z drugim graczem.
@@ -310,8 +323,15 @@ public class Client
         }
         otherPlayerOut=null;
         otherPlayer=null;
-        state = 0;
+        opponentName=null;
+        setState(READY);
         //user.connectionDown(false);
+    }
+
+    private void setState(ConnectionState ns)
+    {
+        state= ns;
+        System.out.println("Connection state: "+state);
     }
 
     public void clearConnectionState()
@@ -332,7 +352,9 @@ public class Client
         {
             //serverIn.println(CMD_CLEAR);
             messagesToOtherPlayer.offer(CMD_CLEAR);
+            return true;
         }
+        System.out.println(user.getClass().getSimpleName()+" <="+ Arrays.toString(args));
         return user.processCommand(args);
     }
 
@@ -347,19 +369,22 @@ public class Client
         }).start(); // Uruchom wątek wysyłania
         try {
             System.out.println("Listener has started");
+            setState(READY);
             Scanner in = new Scanner( otherPlayer.getInputStream() );
             while(in.hasNextLine())
             {
                 String cmd0=in.nextLine();
                 String[] cmd = cmd0.split(" ");
                 myMove=false;
+                System.out.println(user.getClass().getSimpleName()+" <="+ Arrays.toString(cmd));
                 if (! user.processCommand(cmd)
                     || cmd[0].equals(CMD_CLEAR)) break;
                 if (cmd[0].equals(CMD_MOVE)) myMove=true;
                 if (cmd[0].equals(CMD_GAMEEND))
                 {
+                    setState(WAITING);
                     serverIn.println(cmd0); // Przekaż informację o zakończeniu gry do serwera.
-                    //break;
+                    break;
                 }
             }
         } catch (IOException ex)
@@ -369,7 +394,6 @@ public class Client
         if (!messagesToOtherPlayer.offer(CMD_CLEAR))
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, "Nie wstawiło się.");
         System.out.println("Połączenie z drugim graczem zamknięte.");
-        state = 0;
     }
 
     /** Wysyłanie kolejnych informacji do drugiego gracza. */
@@ -379,6 +403,7 @@ public class Client
             while(true)
             {
                 String cmd = messagesToOtherPlayer.take();
+                System.out.println("Sending \""+cmd+"\" to "+opponentName);
                 otherPlayerOut.println(cmd);
                 if (cmd.startsWith(CMD_CLEAR)) break;
             }
@@ -389,7 +414,6 @@ public class Client
         {
             disconnectOther();
             user.connectionDown(false);
-            state=0;
         }
         System.out.println("Zamknięcie wątku wychodzącego.");
     }
@@ -402,7 +426,7 @@ public class Client
         try {
             otherPlayer.connect(address,5000);
             otherPlayerOut= new PrintWriter(otherPlayer.getOutputStream(),true);
-            if (state==0 && args.length>3 && user.processCommand(args))
+            if (state==READY && args.length>3 && user.processCommand(args))
             {
                 otherPlayerOut.println(CMD_PLAY+" "+name);
                 colour = false;
@@ -420,7 +444,7 @@ public class Client
             {
                 otherPlayerOut.println(CMD_CLEAR); // Odrzuć "zaproszenie"
                 disconnectOther();
-                user.done(false);
+                //user.done(false);
             }
         } catch (IOException ex) {
             return false;
@@ -440,12 +464,12 @@ public class Client
         server = otherPlayer = null;
         serverIn = null;
         otherPlayerOut = null;
-        state = -1;
+        setState(VOID);
     }
 
     public void setServerAddress(String address)
     {
-        if(state!= -1) throw new IllegalStateException("Connection is already open?");
+        if(state!=VOID) throw new IllegalStateException("Connection is already open?");
         serverAddress = new InetSocketAddress(address, SERVER_PORT);
     }
 

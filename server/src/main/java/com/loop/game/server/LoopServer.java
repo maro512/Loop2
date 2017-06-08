@@ -122,6 +122,7 @@ public class LoopServer //implements Runnable
         public ClientInteraction(Socket socket)
         {
             this.socket=socket;
+            queue=new LinkedBlockingQueue<String>();
         }
 
         @Override
@@ -150,11 +151,11 @@ public class LoopServer //implements Runnable
                     notWorthy=false;
                     System.out.println("Listening to \""+name+"\"...");
                 }
-            } catch (IOException ex)
+            } catch (Exception ex)
             {
-                System.out.println("ERROR! Connection terminated.");
+                System.out.println("FATAL ERROR! Connection terminated.");
                 queue.offer(Client.ERROR);
-                Logger.getLogger(ClientInteraction.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
             logout();
             System.out.println("Podłączeni: "+Arrays.toString(clients.keySet().toArray()));
@@ -176,10 +177,11 @@ public class LoopServer //implements Runnable
                 System.err.println("Błąd w wątku wysyłającym do gracza "+name);
                 ex.printStackTrace();
             }
+            queue.clear();
         }
 
         /** Czyści stan komunikacji z graczem. */
-        private void cmdClear()
+        private synchronized void cmdClear()
         {
             state=State.NULL;
             if(otherPlayer!=null)
@@ -191,7 +193,7 @@ public class LoopServer //implements Runnable
         }
 
         /** Pośredniczy w utworzeniu połączenia z dostepnym graczem. */
-        private void cmdPlay(String[] args)
+        private synchronized void cmdPlay(String[] args)
         {
             ClientInteraction player2=null;
             if (args.length==2) player2=chooseAnyPlayer();
@@ -218,7 +220,7 @@ public class LoopServer //implements Runnable
         /** Odbiera informację o zakończeniu gry.
          * Docelowo może aktualizować rankingi w bazie.
          * W obecnej wersji "protokołu" GAMEEND nie zamyka połączenia - to robi komenda CLEAR */
-        private void cmdGameEnd(String[] args)
+        private synchronized void cmdGameEnd(String[] args)
         {
             if (otherPlayer==null || state!=State.GAME) return; // throw new IllegalStateException("There is no game played!");
             System.out.println("Gra zakończona przez gracza \""+name+"\".");
@@ -231,7 +233,7 @@ public class LoopServer //implements Runnable
             }
             queue.offer(Client.CMD_GAMEEND+" "+otherPlayer.name); // Informacja dla graczy o końcu gry
             otherPlayer.queue.offer(Client.CMD_GAMEEND+" "+name);
-            state=otherPlayer.state = State.TERMINATE; // Nie wiem co ten stan oznacza, tak naprawdę...
+            state= otherPlayer.state = State.TERMINATE; // Nie wiem co ten stan oznacza, tak naprawdę...
         }
 
         /** Odsyła do klienta listę najlepszych graczy oraz jego miejsce w rankingu */
@@ -283,7 +285,7 @@ public class LoopServer //implements Runnable
         // Potencjalne, inne metody do obsługi zapytań...
 
         /** Zamykanie połaczenia z klientem. */
-        private void logout()
+        private synchronized void logout()
         {
             clients.remove(name);
             detach();
@@ -420,7 +422,6 @@ public class LoopServer //implements Runnable
             if (name != null)
             {
                 clients.put(name,this);
-                queue=new LinkedBlockingQueue<String>();
                 queue.add(Client.CMD_LOGIN+" "+name); //out.flush();
                 //sendingThread = new Thread(
                 executor.execute(new Runnable() { // Odpalanie wątku wysyłającego

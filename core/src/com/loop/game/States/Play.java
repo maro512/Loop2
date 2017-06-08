@@ -26,6 +26,7 @@ import com.loop.game.LoopGame;
 import com.loop.game.Net.Client;
 import com.loop.game.Widgets.BoardWidget;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -155,7 +156,7 @@ public class Play extends BasicScreen implements PlayScreen
     private void showWinScreen() {
         table.clearChildren();
         table.add(new Label(game.whoWon().getName() + " "
-                            + getApp().loc.get("won"), getApp().skin)).expandX();
+                            + getString("won"), getApp().skin)).expandX();
         table.row().fillX().expandY();
         table.add(bv).pad(10).colspan(BUTTONS_AMOUNT).fill();
         table.row().expandX();
@@ -168,7 +169,7 @@ public class Play extends BasicScreen implements PlayScreen
             }
         };
 
-        TextButton backButton = new TextButton(getApp().loc.get("back"), getApp().skin);
+        TextButton backButton = new TextButton(getString("back"), getApp().skin);
         backButton.addListener(backListener);
         table.add(backButton);
     }
@@ -187,6 +188,7 @@ public class Play extends BasicScreen implements PlayScreen
     @Override
     public boolean processCommand(String[] command)
     {
+        System.out.println("Play: "+ Arrays.toString(command)+" !?!");
         return command[0].equals(Client.CMD_CLEAR);
     }
 }

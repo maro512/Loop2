@@ -73,7 +73,7 @@ public class PlayOnline extends BasicScreen implements PlayScreen
         this.playerBg2 = new Image(new Texture(Gdx.files.internal("players.png")));
         playerBg2.setScaling(Scaling.stretch);
         this.bv = new BoardWidget(getApp().skin, game, this);
-        game.pickFirstPlayer();
+        //game.pickFirstPlayer(); // Nie możemy losować kto zaczyna!
 
         for (int i=0; i<players.length; ++i) {
             playersLabels[i] = new Label(players[i].getName(), getApp().skin);
@@ -211,7 +211,7 @@ public class PlayOnline extends BasicScreen implements PlayScreen
     @Override
     public boolean processCommand(String[] command)
     {
-        System.out.println("PlayOnline <="+ Arrays.toString(command));
+        System.out.println("PlayOnline: "+ Arrays.toString(command));
         if (command[0].equals(Client.CMD_MOVE))
         {
             try{

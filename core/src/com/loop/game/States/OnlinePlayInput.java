@@ -131,7 +131,6 @@ public class OnlinePlayInput extends BasicScreen
     @Override
     public boolean processCommand(String[] command)
     {
-        System.out.println("Komunikat: "+ Arrays.toString(command));
         if (command[0].equals(Client.ERROR))
         {
             Gdx.app.postRunnable(new Runnable()
