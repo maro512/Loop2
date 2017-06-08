@@ -114,8 +114,16 @@ public class Game {
         return board.getCells();
     }
 
-    public List<Tile> getWinningLine(){
-        return board.isWhiteWin() ? board.getWinningLine(false) : board.getWinningLine(true);
+    public List<Tile> getWinningLine()
+    {
+        if(board.isBlackWin())
+        {
+            if (!board.isWhiteWin() || currentPlayer == BLACK)
+                return board.getWinningLine(Board.BLACK);
+            else
+                return board.getWinningLine(Board.WHITE);
+        }
+        else return board.getWinningLine(Board.WHITE);
     }
 
     public Player getWinningPlayer () {
