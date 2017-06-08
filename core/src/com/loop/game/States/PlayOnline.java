@@ -1,11 +1,11 @@
 package com.loop.game.States;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
@@ -26,15 +26,16 @@ import com.loop.game.LoopGame;
 import com.loop.game.Net.Client;
 import com.loop.game.Widgets.BoardWidget;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Created by tobi on 5/23/17.
+ * Created by Kamil
  */
 
-public class Play extends BasicScreen implements PlayScreen
+public class PlayOnline extends BasicScreen implements PlayScreen
 {
     private Game game;
     private final int BUTTONS_AMOUNT = 6;
@@ -51,12 +52,17 @@ public class Play extends BasicScreen implements PlayScreen
     private ClickListener buttonClick = new ClickListener(){
         @Override
         public void clicked(InputEvent e, float x, float y){
-            makeMove(buttons.get(e.getListenerActor()));
+            if(getClient().isMyMove())
+            {
+                byte type = buttons.get(e.getListenerActor());
+                makeMoveLocal(type);
+            }
         }
     };
 
-    public Play(final LoopGame loopGame , Player[] players) {
+    public PlayOnline(final LoopGame loopGame) {
         super(loopGame);
+        Player[] players = getClient().getPlayerTable();
         this.game = new Game(players);
         this.buttons = new HashMap<Button, Byte>();
         this.playersLabels = new Label[2];
@@ -126,19 +132,40 @@ public class Play extends BasicScreen implements PlayScreen
         }
     }
 
-    private void makeMove (byte type) {
+    private void makeMoveLocal(byte type)
+    {
+        Cell tmp = game.getSelected();
         game.makeMove(type);
+        getClient().commitMove(tmp.getX(),tmp.getY(),type);
+        if (game.isTerminated())
+            getClient().commitGameEnd(game.getCrrPlayer()==game.whoWon());
+        updateInterfaceAfterMove();
+    }
 
-        if (!game.isTerminated()) {
+    private void makeMoveRemote(String[] data)
+    {
+        game.setSelected(game.getCell(parseVector(data)));
+        game.makeMove(Byte.valueOf(data[3]));
+        Gdx.app.postRunnable(new Runnable(){
+            @Override
+            public void run()
+            {
+                updateInterfaceAfterMove();
+            }});
+    }
+
+    private void updateInterfaceAfterMove()
+    {
+        if (game.isTerminated()) showWinScreen();
+        else
+        {
             highlightCurrentPlayer();
-            game.setSelected(null);
             disableAllButtons();
-        } else {
-            showWinScreen();
         }
     }
 
     public void updateMenu(Cell selected) {
+        if (!getClient().isMyMove()) return;
         List<Byte> possibleMoves = game.getPossibleMoves(selected.getX(), selected.getY());
 
         for (Map.Entry<Button, Byte> entry : buttons.entrySet()) {
@@ -155,7 +182,7 @@ public class Play extends BasicScreen implements PlayScreen
     private void showWinScreen() {
         table.clearChildren();
         table.add(new Label(game.whoWon().getName() + " "
-                            + getApp().loc.get("won"), getApp().skin)).expandX();
+                                    + getApp().loc.get("won"), getApp().skin)).expandX();
         table.row().fillX().expandY();
         table.add(bv).pad(10).colspan(BUTTONS_AMOUNT).fill();
         table.row().expandX();
@@ -163,8 +190,8 @@ public class Play extends BasicScreen implements PlayScreen
         ClickListener backListener = new ClickListener(){
             @Override
             public void clicked(InputEvent e, float x, float y){
-           getApp().setScreen(new MainMenu(getApp()));
-           dispose();
+                getApp().setScreen(new MainMenu(getApp()));
+                dispose();
             }
         };
 
@@ -175,11 +202,8 @@ public class Play extends BasicScreen implements PlayScreen
 
     @Override
     public void render(float delta) {
-        if (Gdx.input.isKeyPressed(Input.Keys.BACK)){
-            backToMainMenu();
-        }
-
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        if(!getClient().isMyMove()) game.setSelected(null);
         getStage().act(delta);
         getStage().draw();
     }
@@ -187,6 +211,43 @@ public class Play extends BasicScreen implements PlayScreen
     @Override
     public boolean processCommand(String[] command)
     {
-        return command[0].equals(Client.CMD_CLEAR);
+        System.out.println("PlayOnline <="+ Arrays.toString(command));
+        if (command[0].equals(Client.CMD_MOVE))
+        {
+            try{
+                makeMoveRemote(command);
+            } catch (Exception ex) { return false; }
+            return true;
+        }
+        if (command[0].equals(Client.CMD_GAMEEND))
+            return game.isTerminated();
+        if (command[0].equals(Client.CMD_CLEAR))
+        {
+            if (! game.isTerminated())
+                System.err.println("Połącznie nieoczekiwanie przerwane!");
+            else return true;
+        }
+        return false;
     }
+
+    private static Vector2 parseVector(String[] moveArgs)
+    {
+        return new Vector2(Integer.parseInt(moveArgs[1]),Integer.parseInt(moveArgs[2]));
+    }
+
+    @Override
+    public void connectionDown(boolean server)
+    {
+        if(server)
+        {
+            System.err.println("Przerwano połączenie z serwerem!");
+            Gdx.app.postRunnable(new Runnable(){
+                @Override
+                public void run()
+                {
+                    backToMainMenu();
+                }});
+        }
+    }
+
 }

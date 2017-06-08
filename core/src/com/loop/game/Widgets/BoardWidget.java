@@ -13,7 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ScissorStack;
 import com.loop.game.GameModel.Cell;
 import com.loop.game.GameModel.Game;
 import com.loop.game.GameModel.Tile;
-import com.loop.game.States.Play;
+import com.loop.game.States.PlayScreen;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +38,7 @@ public class BoardWidget extends Widget {
     private final float SCALE = .25f;
     private boolean started = false, drag = false;
     private Game game;
-    private Play play;
+    private PlayScreen play;
 
     // TODO: Make fitviewport work
 
@@ -84,7 +84,7 @@ public class BoardWidget extends Widget {
         }
     };
 
-    public BoardWidget(Skin skin, Game game, Play play) {
+    public BoardWidget(Skin skin, Game game, PlayScreen play) {
         tileTextures = new HashMap<Byte, Texture>();
         shadowedTileTextures= new HashMap<Byte, Texture>();
         this.game = game;

@@ -17,12 +17,18 @@ import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Scaling;
 import com.loop.game.LoopGame;
+import com.loop.game.Net.Client;
+import com.loop.game.Net.ConnectionListener;
+import com.loop.game.Net.RatingEntry;
+
+import java.util.List;
 
 /**
  * Created by tobi on 4/28/17.
  */
 
-public class MainMenu implements Screen {
+public class MainMenu implements Screen, ConnectionListener
+{
     private final LoopGame game;
     private final Stage stage;
     private final Image logo;
@@ -140,5 +146,37 @@ public class MainMenu implements Screen {
     @Override
     public void resume() {
 
+    }
+
+    @Override
+    public boolean processCommand(String[] command)
+    {
+        if (command[0].equals(Client.CMD_PLAY))
+        {
+            Gdx.app.postRunnable(new Runnable(){
+                @Override
+                public void run()
+                {
+                    game.setScreen(new PlayOnline(game));
+                    dispose();
+                }});
+        }
+        return true;
+    }
+
+    @Override
+    public void recieveRating(List<RatingEntry> rating)
+    {
+
+    }
+
+    @Override
+    public void connectionDown(boolean server)
+    {
+    }
+
+    @Override
+    public void done(boolean success)
+    {
     }
 }

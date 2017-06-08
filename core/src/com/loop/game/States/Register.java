@@ -1,6 +1,5 @@
 package com.loop.game.States;
 
-
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
@@ -17,42 +16,32 @@ import com.loop.game.LoopGame;
  * Created by tobi on 4/28/17.
  */
 
-public class Register implements Screen {
-    private final LoopGame game;
-    private final Stage stage;
+public class Register extends BasicScreen
+{
     private TextField [] inputField;
     private TextButton registerBtn;
     private TextButton backBtn;
     private final int TEXT_FIELDS = 3;
 
     public Register(final LoopGame game) {
-        this.game = game;
+        super(game);
         inputField = new TextField [TEXT_FIELDS];
-        this.registerBtn = new TextButton(game.loc.get("makeRegister"), game.skin);
-        this.backBtn = new TextButton(game.loc.get("back"), game.skin);
+        this.registerBtn = new TextButton(getString("makeRegister"), game.skin);
+        this.backBtn = new TextButton(getString("back"), game.skin);
 
         for (int i=0; i<TEXT_FIELDS; ++i) {
             inputField[i] = new TextField("", game.skin);
         }
 
-        inputField[0].setMessageText(game.loc.get("username"));
+        inputField[0].setMessageText(getString("username"));
 
         for (int i=1; i<TEXT_FIELDS; ++i) {
-            inputField[i].setMessageText(game.loc.get("password"));
+            inputField[i].setMessageText(getString("password"));
             inputField[i].setPasswordCharacter('*');
             inputField[i].setPasswordMode(true);
         }
-
-        this.stage = new Stage(game.VIEWPORT, game.BATCH) {
-            @Override
-            public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-                super.unfocusAll();
-                Gdx.input.setOnscreenKeyboardVisible(false);
-                return super.touchDown(screenX, screenY, pointer, button);
-            }
-        };
         fillStage();
-        Gdx.input.setInputProcessor(stage);
+        Gdx.input.setInputProcessor(getStage());
     }
 
     private void fillStage() {
@@ -69,7 +58,7 @@ public class Register implements Screen {
         vg.addActor(backBtn);
 
         setButtonActions();
-        stage.addActor(vg);
+        getStage().addActor(vg);
     }
 
     private void setButtonActions() {
@@ -83,54 +72,19 @@ public class Register implements Screen {
         backBtn.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                back();
+                backToMainMenu();
             }
         });
     }
 
-    @Override
-    public void resize(int width, int height) {
-        stage.getViewport().update(width, height, true);
+    protected void backButtonClicked()
+    {
+        backToMainMenu();
     }
 
     @Override
-    public void render(float delta) {
-        Gdx.input.setCatchBackKey(true);
-        if (Gdx.input.isKeyPressed(Input.Keys.BACK)){
-            back();
-        }
-
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        stage.draw();
-    }
-
-    @Override
-    public void dispose() {
-        stage.dispose();
-    }
-
-    @Override
-    public void show() {
-
-    }
-
-    @Override
-    public void hide() {
-
-    }
-
-    @Override
-    public void pause() {
-
-    }
-
-    @Override
-    public void resume() {
-
-    }
-
-    private void back() {
-        game.setScreen(new MainMenu(game));
-        dispose();
+    public boolean processCommand(String[] command)
+    {
+        return false;
     }
 }

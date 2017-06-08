@@ -19,38 +19,34 @@ public class Game {
     private Player[] players;
     private int currentPlayer; // liczba z {0, 1}, do wyboru z tablicy players
     private Random rnd;
-    private Cell selected;
+    private boolean draw;
+    private EmptyCell selected;
     private boolean terminated;
 
     public Game() {
         this.board = new Board();
         this.players = new Player[2];
         this.rnd = new Random();
-        this.terminated = false;
+        this.draw = false;
     }
 
     public Game(Player players[]) {
         this.board = new Board();
         this.players = players;
         this.rnd = new Random();
-        this.terminated = false;
+        this.draw = false;
     }
 
-    public Cell getSelected() {
+    public EmptyCell getSelected() {
         return selected;
     }
 
     public void setSelected(Cell selected) {
-        this.selected = selected;
+        this.selected = (EmptyCell) selected;
     }
 
     public Cell getCell(Vector2 pos) {
-        for (Cell cell : getBoardView()) {
-            if (cell.getX() == pos.x && cell.getY() == pos.y) {
-                return cell;
-            }
-        }
-        return null;
+        return board.getCell((int) pos.x, (int) pos.y);
     }
 
     public Player[] getPlayers () { return players; }
@@ -60,7 +56,21 @@ public class Game {
         players[1] = p2;
     }
 
+    public List<Tile> getWinningLine()
+    {
+        if( board.isBlackWin() )
+        {
+            if (!board.isWhiteWin() || currentPlayer==1)
+                return board.getWinningLine(Board.BLACK);
+            else
+                return board.getWinningLine(Board.WHITE);
+        }
+        else return board.getWinningLine(Board.WHITE);
+    }
+
     private void changePlayer() { currentPlayer ^= 1; }
+
+    public int getCurrentPlayerNumber() { return currentPlayer; }
 
     public Player pickFirstPlayer() {
         currentPlayer = rnd.nextInt(2);
@@ -68,29 +78,58 @@ public class Game {
     }
 
     /**
-     * Metoda zwraca mozliwe typy plytek, kt�re moga zostac polozone
+     * Metoda zwraca możliwe typy płytek, które moga zostać położone
      * na danym polu.
      * @param x - wspolrzedna x
      * @param y - wspolrzedna y
      * @return  - lista typow jako lista obiektow Byte,
-     *            pusta lista, gdy nie da sie postawic plytki
+     *            pusta lista, gdy nie da sie postawic płytki
      */
     public List<Byte> getPossibleMoves(int x, int y) {
         List<Byte> possibilities = new LinkedList<Byte>();
-        if (!board.isWhiteWin() && !board.isBlackWin()) {
+        if (!draw && !board.isWhiteWin() && !board.isBlackWin()) {
             EmptyCell cell = board.getAvailablePlace(x, y);
 
             if (cell != null) {
-                for (int i=0; i<Tile.ALL_TYPES.length; ++i) {
-                    if (cell.tileFits(Tile.ALL_TYPES[i])) {
-                        possibilities.add(Tile.ALL_TYPES[i]);
-                    }
+                for (byte type : Tile.ALL_TYPES) {
+                    if (cell.tileFits(type))
+                        possibilities.add(type);
                 }
             }
         }
-
         return possibilities;
     }
+
+    /**
+     * Zakladam, ze dostaje od interfejsu TYLKO plytki z prawidlowym typem
+     * i miejscem (getPossibleMoves zapobiega zlym typom)
+     */
+    public void makeMove(int x, int y, byte type) {
+        board.setTile(board.getAvailablePlace(x, y), type);
+        changePlayer();
+    }
+
+    /**
+     * Zwraca zwycięzcę, zgodnie z założeniem, że jeśli mamy dwie linie
+     * wygrywające, wygrywa gracz, który ostatni miał ruch.
+     */
+    public Player whoWon() {
+        if( board.isBlackWin() )
+        {
+            if (!board.isWhiteWin() || currentPlayer==1)
+                return players[BLACK];
+            else
+                return players[WHITE];
+        }
+        else if (board.isWhiteWin()) return players[WHITE];
+        else return null;
+    }
+
+    public Collection<Cell> getBoardView(){
+        return board.getCells();
+    }
+
+    public Player getCrrPlayer() { return players[currentPlayer]; }
 
     private boolean checkEnd() {
         if (board.isBlackWin() || board.isWhiteWin()) {
@@ -100,27 +139,21 @@ public class Game {
         return terminated;
     }
 
-    public void makeMove(byte type) {
-        board.setTile(board.getAvailablePlace(selected.getX(), selected.getY()), type);
-
-        if (!checkEnd()) {
+    public void makeMove(byte type)
+    {
+        board.setTile(selected, type);
+        selected=null;
+        if (!checkEnd())
+        {
             changePlayer();
         }
     }
 
     public boolean isTerminated() { return terminated; }
 
-    public Collection<Cell> getBoardView(){
-        return board.getCells();
-    }
-
-    public List<Tile> getWinningLine(){
-        return board.isWhiteWin() ? board.getWinningLine(false) : board.getWinningLine(true);
-    }
-
-    public Player getWinningPlayer () {
-        return board.isWhiteWin() ? players[WHITE] : players[BLACK];
-    }
-
-    public Player getCrrPlayer() { return players[currentPlayer]; }
+    /* Współrzędne skrajne planszy. */
+    public float getMinX() { return board.getMinX()+1.5f; }
+    public float getMinY() { return board.getMinY()+1.5f; }
+    public float getMaxX() { return board.getMaxX()-.5f; }
+    public float getMaxY() { return board.getMaxY()-.5f; }
 }

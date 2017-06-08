@@ -11,6 +11,8 @@ public class AndroidLauncher extends AndroidApplication {
 	protected void onCreate (Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
-		initialize(new LoopGame(), config);
+		LoopGame main=new LoopGame();
+		main.getClient().setServerAddress("10.0.2.2"); // Adres na maszynie wirtualnej (i tak nie działa)
+		initialize(main, config);
 	}
 }

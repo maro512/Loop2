@@ -12,8 +12,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.I18NBundle;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.loop.game.Net.Client;
+import com.loop.game.Net.ConnectionListener;
+import com.loop.game.Net.RatingEntry;
 import com.loop.game.States.MainMenu;
 
+import java.util.List;
 import java.util.Locale;
 
 public class LoopGame extends Game {
@@ -26,6 +30,29 @@ public class LoopGame extends Game {
     public static final int WIDTH = 480;//Gdx.app.getGraphics().getWidth();
     public static final int HEIGHT = 800;//Gdx.app.getGraphics().getHeight();
     public static final Viewport VIEWPORT = new FitViewport(WIDTH, HEIGHT);
+    private final Client client;
+    public static final ConnectionListener VOID_CONNECTION= new ConnectionListener(){
+        @Override
+        public boolean processCommand(String[] command)
+        {
+            return false;
+        }
+
+        @Override
+        public void recieveRating(List<RatingEntry> rating)
+        {
+        }
+
+        @Override
+        public void connectionDown(boolean server)
+        {
+        }
+
+        @Override
+        public void done(boolean success)
+        {
+        }
+    };
 
     private FileHandle langPath;
 
@@ -61,4 +88,11 @@ public class LoopGame extends Game {
         skin.dispose();
     }
 
+    public final Client getClient() { return client; }
+
+    public LoopGame()
+    {
+        super();
+        client = new Client(VOID_CONNECTION);
+    }
 }

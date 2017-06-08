@@ -11,6 +11,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.VerticalGroup;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.loop.game.LoopGame;
+import com.loop.game.Net.Client;
 
 import java.util.Locale;
 
@@ -18,10 +19,9 @@ import java.util.Locale;
  * Created by tobi on 4/28/17.
  */
 
-public class OptionsMenu implements Screen {
+public class OptionsMenu extends BasicScreen {
     // TODO: plik cfg?
-    private final LoopGame game;
-    private final Stage stage;
+
     private final TextButton soundBtn;
     private final TextButton langBtn;
     private final TextButton backBtn;
@@ -32,15 +32,14 @@ public class OptionsMenu implements Screen {
     // koniec temp
 
     public OptionsMenu(final LoopGame game) {
-        this.game = game;
+        super(game);
         this.soundFlag = true; // docelowo pobranie z cfg
         this.langFlag = true; // docelowo pobranie z cfg
-        this.soundBtn = new TextButton(game.loc.get(soundFlag ? "soundOn" : "soundOff"), game.skin);
-        this.langBtn = new TextButton(game.loc.get(langFlag ? "lngEnglish" : "lngPolish"), game.skin);
-        this.backBtn = new TextButton(game.loc.get("back"), game.skin);
-        this.stage = new Stage(game.VIEWPORT, game.BATCH);
+        this.soundBtn = new TextButton(getString(soundFlag ? "soundOn" : "soundOff"), game.skin);
+        this.langBtn = new TextButton(getString(langFlag ? "lngEnglish" : "lngPolish"), game.skin);
+        this.backBtn = new TextButton(getString("back"), game.skin);
         fillStage();
-        Gdx.input.setInputProcessor(stage);
+        Gdx.input.setInputProcessor(getStage());
     }
 
     private void fillStage() {
@@ -52,7 +51,7 @@ public class OptionsMenu implements Screen {
         vg.addActor(backBtn);
         vg.center();
         setButtonActions();
-        stage.addActor(vg);
+        getStage().addActor(vg);
     }
 
     private void setButtonActions() {
@@ -60,7 +59,7 @@ public class OptionsMenu implements Screen {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
             soundFlag = !soundFlag;
-            soundBtn.setText(game.loc.get(soundFlag ? "soundOn" : "soundOff"));
+            soundBtn.setText(getString(soundFlag ? "soundOn" : "soundOff"));
             }
         });
 
@@ -68,7 +67,7 @@ public class OptionsMenu implements Screen {
             @Override
             public void changed (ChangeEvent event, Actor actor) {
             langFlag = !langFlag;
-            game.changeLang(langFlag ? new Locale("en") : new Locale("pl"));
+            getApp().changeLang(langFlag ? new Locale("en") : new Locale("pl"));
             updateLabels();
             }
         });
@@ -78,59 +77,35 @@ public class OptionsMenu implements Screen {
             public void changed (ChangeEvent event, Actor actor) {
             // TODO: zapis opcji
 
-            back();
+                backToMainMenu();
             }
         });
     }
 
     private void updateLabels () {
-        this.soundBtn.setText(game.loc.get(soundFlag ? "soundOn" : "soundOff"));
-        this.langBtn.setText(game.loc.get(langFlag ? "lngEnglish" : "lngPolish"));
-        this.backBtn.setText(game.loc.get("back"));
+        this.soundBtn.setText(getString(soundFlag ? "soundOn" : "soundOff"));
+        this.langBtn.setText(getString(langFlag ? "lngEnglish" : "lngPolish"));
+        this.backBtn.setText(getString("back"));
+    }
+
+    protected void backButtonClicked()
+    {
+        backToMainMenu();
     }
 
     @Override
-    public void resize(int width, int height) {
-        stage.getViewport().update(width, height, true);
-    }
-
-    @Override
-    public void render(float delta) {
-        if (Gdx.input.isKeyPressed(Input.Keys.BACK)){
-            back();
+    public boolean processCommand(String[] command)
+    {
+        if (command[0].equals(Client.CMD_PLAY))
+        {
+            Gdx.app.postRunnable(new Runnable(){
+                @Override
+                public void run()
+                {
+                    getApp().setScreen(new PlayOnline(getApp()));
+                    dispose();
+                }});
         }
-
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        stage.draw();
-    }
-
-    @Override
-    public void dispose() {
-        stage.dispose();
-    }
-
-    @Override
-    public void show() {
-
-    }
-
-    @Override
-    public void hide() {
-
-    }
-
-    @Override
-    public void pause() {
-
-    }
-
-    @Override
-    public void resume() {
-
-    }
-
-    private void back() {
-        game.setScreen(new MainMenu(game));
-        dispose();
+        return true;
     }
 }
