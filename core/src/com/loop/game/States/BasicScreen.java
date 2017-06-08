@@ -4,6 +4,7 @@ package com.loop.game.States;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -49,6 +50,7 @@ public abstract class BasicScreen implements Screen, ConnectionListener
     }
 
     protected final Stage getStage() { return stage;}
+    public final Camera getCamera() { return stage.getCamera();}
     protected final Skin getSkin() { return application.skin;}
     protected final String getString(String id) { return application.loc.get(id);}
     protected final SpriteBatch getBatch() { return application.BATCH; }

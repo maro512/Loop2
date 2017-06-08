@@ -71,6 +71,17 @@ public class BoardWidget extends Widget {
         {
             dragPos.x = x - dragStart.x;
             dragPos.y = y - dragStart.y;
+            float cx = (camera.x+ dragPos.x)/tileWidth;
+            float cy = (camera.y+ dragPos.y)/tileHeight;
+
+            if (cx+game.getMaxX()  < 0)
+                dragPos.x = -game.getMaxX()*tileWidth  -camera.x;
+            if (cy+game.getMaxY() < 0)
+                dragPos.y = -game.getMaxY()*tileHeight -camera.y;
+            if (cx+game.getMinX() > getWidth()/tileWidth  )
+                dragPos.x = getWidth() - game.getMinX()*tileWidth  -camera.x;
+            if (cy+game.getMinY() > getHeight()/tileHeight)
+                dragPos.y = getHeight()- game.getMinY()*tileHeight -camera.y;
         }
 
         @Override
@@ -119,8 +130,9 @@ public class BoardWidget extends Widget {
     public void draw(Batch batch, float parentAlpha) {
         super.draw(batch, parentAlpha);
         batch.draw(texture, pos.x, pos.y, size.x, size.y);
-        ScissorStack.pushScissors(bounds);
-
+        Rectangle scissors = new Rectangle();
+        ScissorStack.calculateScissors(play.getCamera(), batch.getTransformMatrix(), bounds, scissors);
+        ScissorStack.pushScissors(scissors);
 
         if (!game.isTerminated()) {
             Cell selected = game.getSelected();

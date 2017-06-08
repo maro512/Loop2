@@ -1,5 +1,6 @@
 package com.loop.game.States;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.loop.game.GameModel.Cell;
 
 /**
@@ -10,4 +11,5 @@ public interface PlayScreen
 {
     void disableAllButtons();
     void updateMenu(Cell cell);
+    Camera getCamera();
 }

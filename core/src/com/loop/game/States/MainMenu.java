@@ -92,9 +92,9 @@ public class MainMenu implements Screen, ConnectionListener
                     } catch (UnknownHostException e) {
                         e.printStackTrace();
                     }
-
             }
         });
+
         registerBtn.addListener(new ChangeListener() {
             @Override
             public void changed (ChangeEvent event, Actor actor) {

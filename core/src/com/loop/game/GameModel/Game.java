@@ -141,9 +141,6 @@ public class Game {
     public float getMinY() { return board.getMinY()+1.5f; }
     public float getMaxX() { return board.getMaxX()-.5f; }
     public float getMaxY() { return board.getMaxY()-.5f; }
-    public Collection<Cell> getBoardView(){
-        return board.getCells();
-    }
 
     public List<Tile> getWinningLine()
     {
@@ -160,6 +157,4 @@ public class Game {
     public Player getWinningPlayer () {
         return whoWon();
     }
-
-    public Player getCrrPlayer() { return players[currentPlayer]; }
 }
