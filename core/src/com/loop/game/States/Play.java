@@ -98,7 +98,6 @@ public class Play extends BasicScreen implements PlayScreen
         table.setBackground("bg_black");
         table.setTouchable(Touchable.enabled);
         table.setFillParent(true);
-        table.setDebug(true);
         table.add(new Stack(playerBg, playersLabels[0])).colspan((int)Math.floor(BUTTONS_AMOUNT*.5)).expandX().height(SCALE);
         table.add(new Stack(playerBg2, playersLabels[1])).colspan((int)Math.ceil(BUTTONS_AMOUNT*.5)).expandX().height(SCALE);
         table.row().expand();

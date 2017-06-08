@@ -39,7 +39,6 @@ public class MainMenu implements Screen, ConnectionListener
     private final TextButton onlineBtn;
     private final TextButton registerBtn;
     private final TextButton logBtn;
-    private final TextButton optBtn;
     private final float BUTTON_PAD = 5;
 
     public MainMenu(final LoopGame game)
@@ -53,7 +52,6 @@ public class MainMenu implements Screen, ConnectionListener
         this.registerBtn = new TextButton(game.loc.get("register"), game.skin);
         this.logBtn = new TextButton(game.loc.get("login"), game.skin);
         if (game.getClient().isServerConnected()) logBtn.setText(game.loc.get("logout"));
-        this.optBtn = new TextButton(game.loc.get("options"), game.skin);
         this.stage = new Stage(game.VIEWPORT, game.BATCH);
         fillStage();
         Gdx.input.setInputProcessor(stage);
@@ -63,13 +61,11 @@ public class MainMenu implements Screen, ConnectionListener
         Table table = new Table();
         table.setFillParent(true);
         table.padTop(5*BUTTON_PAD);
-        table.setDebug(true);
         table.add(logo);
         table.row(); table.add(offlineBtn).padBottom(BUTTON_PAD);
         table.row(); table.add(onlineBtn).padBottom(BUTTON_PAD);
         table.row(); table.add(registerBtn).padBottom(BUTTON_PAD);
         table.row(); table.add(logBtn).padBottom(BUTTON_PAD);
-        table.row(); table.add(optBtn).padBottom(BUTTON_PAD);
         setButtonActions();
         stage.addActor(table);
     }
@@ -116,14 +112,6 @@ public class MainMenu implements Screen, ConnectionListener
                     return;
                 }
                 game.setScreen(new Log(game));
-                dispose();
-            }
-        });
-
-        optBtn.addListener(new ChangeListener() {
-            @Override
-            public void changed (ChangeEvent event, Actor actor) {
-                game.setScreen(new OptionsMenu(game));
                 dispose();
             }
         });

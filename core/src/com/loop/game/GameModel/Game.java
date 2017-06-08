@@ -19,7 +19,6 @@ public class Game {
     private Player[] players;
     private int currentPlayer; // liczba z {0, 1}, do wyboru z tablicy players
     private Random rnd;
-    private boolean draw;
     private EmptyCell selected;
     private boolean terminated;
 
@@ -27,14 +26,14 @@ public class Game {
         this.board = new Board();
         this.players = new Player[2];
         this.rnd = new Random();
-        this.draw = false;
+        this.terminated = false;
     }
 
     public Game(Player players[]) {
         this.board = new Board();
         this.players = players;
         this.rnd = new Random();
-        this.draw = false;
+        this.terminated = false;
     }
 
     public EmptyCell getSelected() {
@@ -56,21 +55,7 @@ public class Game {
         players[1] = p2;
     }
 
-    public List<Tile> getWinningLine()
-    {
-        if( board.isBlackWin() )
-        {
-            if (!board.isWhiteWin() || currentPlayer==1)
-                return board.getWinningLine(Board.BLACK);
-            else
-                return board.getWinningLine(Board.WHITE);
-        }
-        else return board.getWinningLine(Board.WHITE);
-    }
-
     private void changePlayer() { currentPlayer ^= 1; }
-
-    public int getCurrentPlayerNumber() { return currentPlayer; }
 
     public Player pickFirstPlayer() {
         currentPlayer = rnd.nextInt(2);
@@ -87,7 +72,7 @@ public class Game {
      */
     public List<Byte> getPossibleMoves(int x, int y) {
         List<Byte> possibilities = new LinkedList<Byte>();
-        if (!draw && !board.isWhiteWin() && !board.isBlackWin()) {
+        if (!board.isWhiteWin() && !board.isBlackWin()) {
             EmptyCell cell = board.getAvailablePlace(x, y);
 
             if (cell != null) {
@@ -156,4 +141,25 @@ public class Game {
     public float getMinY() { return board.getMinY()+1.5f; }
     public float getMaxX() { return board.getMaxX()-.5f; }
     public float getMaxY() { return board.getMaxY()-.5f; }
+    public Collection<Cell> getBoardView(){
+        return board.getCells();
+    }
+
+    public List<Tile> getWinningLine()
+    {
+        if(board.isBlackWin())
+        {
+            if (!board.isWhiteWin() || currentPlayer == BLACK)
+                return board.getWinningLine(Board.BLACK);
+            else
+                return board.getWinningLine(Board.WHITE);
+        }
+        else return board.getWinningLine(Board.WHITE);
+    }
+
+    public Player getWinningPlayer () {
+        return whoWon();
+    }
+
+    public Player getCrrPlayer() { return players[currentPlayer]; }
 }
