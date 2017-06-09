@@ -21,18 +21,15 @@ import java.util.concurrent.*;
 public class LoopServer //implements Runnable
 {
     private final ExecutorService executor= Executors.newCachedThreadPool();
-    private List<Player_Server> database;
+    private final DataBase dataBase;
     private ServerSocket main;
     private Map<String,ClientInteraction> clients;
-    private final DataBase dataBase;
-
     //public static final int CLIENT_PORT= 7459;
     private long loginTimeout= 10000;
     private int playRequestConnectionTimeout= 10000;
 
     public LoopServer() throws Exception
     {
-        database = new LinkedList<Player_Server>();
         dataBase= new DataBase(false); // Daj true, aby ominąć bazę danych.
         clients = new ConcurrentHashMap<String,ClientInteraction>();
     }

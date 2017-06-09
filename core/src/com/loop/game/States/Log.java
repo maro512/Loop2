@@ -64,6 +64,7 @@ public class Log extends BasicScreen
                 //hideKeyboard();
                 String name = userField.getText();
                 String pass = passField.getText();
+                if (name.isEmpty() || pass.isEmpty()) return;
                 if(getClient().isServerConnected())
                 {
                     //TODO: komunikat od LibGDX jakieś okienko czy coś ?
